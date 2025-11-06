@@ -95,7 +95,7 @@ jobs:
 
       - name: Update GitHub release notes
         if: steps.release.outputs.release_created == 'true' && hashFiles('release-notes.md') != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
         with:
