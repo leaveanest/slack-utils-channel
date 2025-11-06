@@ -1,0 +1,31 @@
+{
+  "errors": {
+    "channel_not_found": "チャンネル情報の読み込みに失敗しました: {error}",
+    "unknown_error": "予期しないエラーが発生しました",
+    "invalid_input": "無効な入力が提供されました",
+    "api_error": "APIリクエストに失敗しました: {message}",
+    "api_call_failed": "API呼び出しに失敗しました: {error}",
+    "data_not_found": "必要なデータが見つかりません",
+    "invalid_type": "無効なタイプ: 期待されるのは {expected} で、取得されたのは {actual} です",
+    "empty_value": "値を空にすることはできません",
+    "invalid_format": "{field} の形式が無効です: 期待されるのは {pattern} です",
+    "validation": {
+      "channel_id_empty": "チャンネルIDを空にすることはできません",
+      "channel_id_format": "チャンネルIDは 'C' で始まり、大文字の英数字が続く必要があります",
+      "user_id_empty": "ユーザーIDを空にすることはできません",
+      "user_id_format": "ユーザーIDは 'U' または 'W' で始まり、大文字の英数字が続く必要があります",
+      "value_empty": "値を空にすることはできません"
+    }
+  },
+  "messages": {
+    "channel_summary": "チャンネル: {name}, メンバー数: {count}",
+    "success": "操作が正常に完了しました",
+    "processing": "リクエストを処理中..."
+  },
+  "logs": {
+    "starting": "ワークフローを開始しています...",
+    "completed": "ワークフローが完了しました",
+    "loading_channel": "チャンネル情報を読み込み中...",
+    "channel_loaded": "チャンネル {name} が正常に読み込まれました"
+  }
+}

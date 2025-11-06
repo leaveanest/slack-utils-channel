@@ -1,0 +1,49 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "deno: cursor-ci",
+      "type": "shell",
+      "command": "deno",
+      "args": [
+        "task",
+        "cursor-ci"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "deno: fmt",
+      "type": "shell",
+      "command": "deno",
+      "args": [
+        "task",
+        "fmt"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "deno: lint",
+      "type": "shell",
+      "command": "deno",
+      "args": [
+        "task",
+        "lint"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "deno: test",
+      "type": "shell",
+      "command": "deno",
+      "args": [
+        "task",
+        "test"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

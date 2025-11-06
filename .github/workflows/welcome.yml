@@ -1,0 +1,36 @@
+name: Welcome New Contributors
+
+on:
+  issues:
+    types:
+      - opened
+  pull_request_target:
+    types:
+      - opened
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send first interaction message
+        uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            初めてのIssueありがとうございます！🎉
+            リバネスのslack-utilsプロジェクトへようこそ。
+            Thank you for opening your first issue! 🙌
+            Welcome to the Leave a Nest slack-utils project.
+            ガイドラインはこちらをご確認ください: https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+            ご不明点があれば遠慮なくお知らせください。
+          pr-message: |
+            初めてのPRありがとうございます！🚀
+            リバネスのslack-utilsプロジェクトに貢献いただき感謝します。
+            Thank you for submitting your first pull request! 🤝
+            We appreciate your contribution to the Leave a Nest slack-utils project.
+            作業フローやレビュー手順はCONTRIBUTINGガイドをご覧ください: https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+            継続的なコラボレーションを楽しみにしています！

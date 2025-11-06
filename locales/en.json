@@ -1,0 +1,31 @@
+{
+  "errors": {
+    "channel_not_found": "Failed to load channel info: {error}",
+    "unknown_error": "An unexpected error occurred",
+    "invalid_input": "Invalid input provided",
+    "api_error": "API request failed: {message}",
+    "api_call_failed": "API call failed: {error}",
+    "data_not_found": "Required data not found",
+    "invalid_type": "Invalid type: expected {expected}, got {actual}",
+    "empty_value": "Value cannot be empty",
+    "invalid_format": "Invalid format for {field}: expected {pattern}",
+    "validation": {
+      "channel_id_empty": "Channel ID cannot be empty",
+      "channel_id_format": "Channel ID must start with 'C' followed by uppercase alphanumeric characters",
+      "user_id_empty": "User ID cannot be empty",
+      "user_id_format": "User ID must start with 'U' or 'W' followed by uppercase alphanumeric characters",
+      "value_empty": "Value cannot be empty"
+    }
+  },
+  "messages": {
+    "channel_summary": "Channel: {name}, Members: {count}",
+    "success": "Operation completed successfully",
+    "processing": "Processing request..."
+  },
+  "logs": {
+    "starting": "Starting workflow...",
+    "completed": "Workflow completed",
+    "loading_channel": "Loading channel information...",
+    "channel_loaded": "Channel {name} loaded successfully"
+  }
+}

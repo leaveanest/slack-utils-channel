@@ -1,0 +1,84 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Slack Function",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--inspect-wait",
+        "--allow-all"
+      ],
+      "program": "${workspaceFolder}/functions/example_function/mod.ts",
+      "attachSimplePort": 9229,
+      "outputCapture": "console"
+    },
+    {
+      "name": "Debug Deno Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "test",
+        "--inspect-wait",
+        "--allow-all"
+      ],
+      "attachSimplePort": 9229,
+      "outputCapture": "console"
+    },
+    {
+      "name": "Debug Current File",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--inspect-wait",
+        "--allow-all",
+        "${file}"
+      ],
+      "attachSimplePort": 9229,
+      "outputCapture": "console"
+    },
+    {
+      "name": "Debug i18n Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "test",
+        "--inspect-wait",
+        "--allow-env",
+        "--allow-read",
+        "--allow-net",
+        "${workspaceFolder}/lib/i18n/test.ts"
+      ],
+      "attachSimplePort": 9229,
+      "outputCapture": "console"
+    },
+    {
+      "name": "Debug Translation Script",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--inspect-wait",
+        "--allow-env",
+        "--allow-read",
+        "--allow-write",
+        "--allow-net",
+        "${workspaceFolder}/scripts/translate.ts"
+      ],
+      "attachSimplePort": 9229,
+      "outputCapture": "console"
+    }
+  ]
+}

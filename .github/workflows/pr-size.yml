@@ -1,0 +1,31 @@
+name: PR Size Check
+
+on:
+  pull_request:
+
+jobs:
+  size-label:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Label pull request size
+        uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_max_size: "10"
+          s_max_size: "100"
+          m_max_size: "500"
+          l_max_size: "1000"
+          fail_if_xl: "false"
+          github_api_url: https://api.github.com
+          files_to_ignore: |
+            *.md
+            *.lock
+          message_if_xl: |
+            ⚠️ このPRは1000行を超えています。
+            レビューの質を保つため、可能であれば以下を検討してください：
+            - 機能ごとに複数のPRに分割
+            - リファクタリングと機能追加を別PRに
+            - テストを別PRに分離

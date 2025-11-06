@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "deno-slack-sdk/": "https://deno.land/x/deno_slack_sdk@2.15.1/",
+    "deno-slack-api/": "https://deno.land/x/deno_slack_api@2.8.0/",
+    "semantic-release": "npm:semantic-release@23",
+    "@semantic-release/": "npm:@semantic-release/",
+    "std/": "https://deno.land/std@0.200.0/",
+    "zod": "npm:zod@^3.24"
+  }
+}

@@ -1,0 +1,402 @@
+name: Slack Notifications
+
+on:
+  issues:
+    types:
+      - opened
+      - closed
+      - labeled
+  pull_request:
+    types:
+      - opened
+      - closed
+  release:
+    types:
+      - published
+  workflow_run:
+    workflows:
+      - Deno CI
+    types:
+      - completed
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Slack webhook configured?
+        id: guard
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        shell: bash
+        run: |
+          if [ -z "${SLACK_WEBHOOK:-}" ]; then
+            echo "Webhook not configured. Skipping notification workflow." >&2
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "webhook=${SLACK_WEBHOOK}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compose Slack payload
+        if: steps.guard.outputs.enabled == 'true'
+        id: compose
+        env:
+          CHANNEL: "#05-miyazawa"
+          USERNAME: "slack-utils Bot"
+          ICON_EMOJI: ":robot_face:"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          EVENT_NAME="$GITHUB_EVENT_NAME"
+          ACTION="$(jq -r '.action // ""' "$GITHUB_EVENT_PATH")"
+          PAYLOAD=""
+
+          case "$EVENT_NAME" in
+            issues)
+              TITLE="$(jq -r '.issue.title' "$GITHUB_EVENT_PATH")"
+              URL="$(jq -r '.issue.html_url' "$GITHUB_EVENT_PATH")"
+              BODY="$(jq -r '.issue.body // ""' "$GITHUB_EVENT_PATH" | head -c 200)"
+              AUTHOR="$(jq -r '.issue.user.login' "$GITHUB_EVENT_PATH")"
+              NUMBER="$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")"
+              LABELS="$(jq -r '.issue.labels[].name' "$GITHUB_EVENT_PATH" | tr '\n' ', ' | sed 's/,$//')"
+              ASSIGNEES="$(jq -r '.issue.assignees[].login' "$GITHUB_EVENT_PATH" | tr '\n' ', ' | sed 's/,$//')"
+
+              case "$ACTION" in
+                opened)
+                  COLOR="good"
+                  EMOJI="🆕"
+                  TEXT="新しいIssue #${NUMBER}"
+                  ;;
+                closed)
+                  COLOR="warning"
+                  EMOJI="✅"
+                  TEXT="Issue解決 #${NUMBER}"
+                  ;;
+                labeled)
+                  LABEL="$(jq -r '.label.name // ""' "$GITHUB_EVENT_PATH")"
+                  COLOR="#0052CC"
+                  EMOJI="🏷️"
+                  TEXT="ラベル追加: \`${LABEL}\`"
+                  ;;
+                *)
+                  echo "send=false" >> "$GITHUB_OUTPUT"
+                  exit 0
+                  ;;
+              esac
+
+              PAYLOAD=$(jq -nc \
+                --arg channel "$CHANNEL" \
+                --arg username "$USERNAME" \
+                --arg icon "$ICON_EMOJI" \
+                --arg emoji "$EMOJI" \
+                --arg text "$TEXT" \
+                --arg title "$TITLE" \
+                --arg url "$URL" \
+                --arg author "$AUTHOR" \
+                --arg body "$BODY" \
+                --arg labels "$LABELS" \
+                --arg assignees "$ASSIGNEES" \
+                --arg color "$COLOR" \
+                '{
+                  channel: $channel,
+                  username: $username,
+                  icon_emoji: $icon,
+                  text: ($emoji + " " + $text),
+                  attachments: [{
+                    color: $color,
+                    title: $title,
+                    title_link: $url,
+                    text: $body,
+                    fields: [
+                      {title: "作成者", value: ("@" + $author), short: true},
+                      ($labels != "" | if . then {title: "ラベル", value: $labels, short: true} else empty end),
+                      ($assignees != "" | if . then {title: "担当者", value: $assignees, short: true} else empty end)
+                    ],
+                    footer: "GitHub",
+                    footer_icon: "https://github.githubassets.com/favicon.ico"
+                  }]
+                }')
+              ;;
+
+            pull_request)
+              TITLE="$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")"
+              URL="$(jq -r '.pull_request.html_url' "$GITHUB_EVENT_PATH")"
+              BODY="$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH" | head -c 200)"
+              AUTHOR="$(jq -r '.pull_request.user.login' "$GITHUB_EVENT_PATH")"
+              NUMBER="$(jq -r '.pull_request.number' "$GITHUB_EVENT_PATH")"
+              BRANCH="$(jq -r '.pull_request.head.ref' "$GITHUB_EVENT_PATH")"
+              BASE_BRANCH="$(jq -r '.pull_request.base.ref' "$GITHUB_EVENT_PATH")"
+              MERGED="$(jq -r '.pull_request.merged' "$GITHUB_EVENT_PATH")"
+              CHANGED_FILES="$(jq -r '.pull_request.changed_files' "$GITHUB_EVENT_PATH")"
+              ADDITIONS="$(jq -r '.pull_request.additions' "$GITHUB_EVENT_PATH")"
+              DELETIONS="$(jq -r '.pull_request.deletions' "$GITHUB_EVENT_PATH")"
+              REVIEWERS="$(jq -r '.pull_request.requested_reviewers[].login' "$GITHUB_EVENT_PATH" | tr '\n' ', ' | sed 's/,$//')"
+
+              if [ "$ACTION" = "opened" ]; then
+                COLOR="good"
+                EMOJI="🔄"
+                TEXT="新しいPR #${NUMBER}"
+              elif [ "$ACTION" = "closed" ]; then
+                if [ "$MERGED" = "true" ]; then
+                  COLOR="#6f42c1"
+                  EMOJI="🎉"
+                  TEXT="マージ完了 #${NUMBER}"
+                else
+                  COLOR="danger"
+                  EMOJI="❌"
+                  TEXT="PRクローズ #${NUMBER}"
+                fi
+              else
+                echo "send=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+
+              PAYLOAD=$(jq -nc \
+                --arg channel "$CHANNEL" \
+                --arg username "$USERNAME" \
+                --arg icon "$ICON_EMOJI" \
+                --arg emoji "$EMOJI" \
+                --arg text "$TEXT" \
+                --arg title "$TITLE" \
+                --arg url "$URL" \
+                --arg author "$AUTHOR" \
+                --arg body "$BODY" \
+                --arg branch "$BRANCH" \
+                --arg base_branch "$BASE_BRANCH" \
+                --arg changed_files "$CHANGED_FILES" \
+                --arg additions "$ADDITIONS" \
+                --arg deletions "$DELETIONS" \
+                --arg reviewers "$REVIEWERS" \
+                --arg color "$COLOR" \
+                '{
+                  channel: $channel,
+                  username: $username,
+                  icon_emoji: $icon,
+                  text: ($emoji + " " + $text),
+                  attachments: [{
+                    color: $color,
+                    title: $title,
+                    title_link: $url,
+                    text: $body,
+                    fields: [
+                      {title: "作成者", value: ("@" + $author), short: true},
+                      {title: "ブランチ", value: ($branch + " → " + $base_branch), short: true},
+                      {title: "変更ファイル", value: $changed_files, short: true},
+                      {title: "変更行数", value: ("+" + $additions + " / -" + $deletions), short: true},
+                      ($reviewers != "" | if . then {title: "レビュアー", value: $reviewers, short: true} else empty end)
+                    ],
+                    footer: "GitHub",
+                    footer_icon: "https://github.githubassets.com/favicon.ico"
+                  }]
+                }')
+              ;;
+
+            release)
+              TAG="$(jq -r '.release.tag_name' "$GITHUB_EVENT_PATH")"
+              URL="$(jq -r '.release.html_url' "$GITHUB_EVENT_PATH")"
+              NAME="$(jq -r '.release.name // ""' "$GITHUB_EVENT_PATH")"
+              BODY="$(jq -r '.release.body // ""' "$GITHUB_EVENT_PATH" | head -c 300)"
+              AUTHOR="$(jq -r '.release.author.login' "$GITHUB_EVENT_PATH")"
+              PRERELEASE="$(jq -r '.release.prerelease' "$GITHUB_EVENT_PATH")"
+
+              if [ "$ACTION" = "published" ]; then
+                if [ "$PRERELEASE" = "true" ]; then
+                  COLOR="warning"
+                  EMOJI="🚧"
+                  TEXT="プレリリース: ${TAG}"
+                else
+                  COLOR="good"
+                  EMOJI="🚀"
+                  TEXT="新バージョンリリース: ${TAG}"
+                fi
+
+                PAYLOAD=$(jq -nc \
+                  --arg channel "$CHANNEL" \
+                  --arg username "$USERNAME" \
+                  --arg icon "$ICON_EMOJI" \
+                  --arg emoji "$EMOJI" \
+                  --arg text "$TEXT" \
+                  --arg name "$NAME" \
+                  --arg url "$URL" \
+                  --arg author "$AUTHOR" \
+                  --arg body "$BODY" \
+                  --arg color "$COLOR" \
+                  '{
+                    channel: $channel,
+                    username: $username,
+                    icon_emoji: $icon,
+                    text: ($emoji + " " + $text),
+                    attachments: [{
+                      color: $color,
+                      title: $name,
+                      title_link: $url,
+                      text: $body,
+                      fields: [
+                        {title: "リリース担当", value: ("@" + $author), short: true}
+                      ],
+                      footer: "GitHub",
+                      footer_icon: "https://github.githubassets.com/favicon.ico"
+                    }]
+                  }')
+              else
+                echo "send=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              ;;
+
+            workflow_run)
+              WORKFLOW="$(jq -r '.workflow_run.name' "$GITHUB_EVENT_PATH")"
+              CONCLUSION="$(jq -r '.workflow_run.conclusion // ""' "$GITHUB_EVENT_PATH")"
+              URL="$(jq -r '.workflow_run.html_url' "$GITHUB_EVENT_PATH")"
+              BRANCH="$(jq -r '.workflow_run.head_branch' "$GITHUB_EVENT_PATH")"
+              COMMIT_MSG="$(jq -r '.workflow_run.head_commit.message' "$GITHUB_EVENT_PATH" | head -n 1)"
+              COMMIT_SHA="$(jq -r '.workflow_run.head_sha' "$GITHUB_EVENT_PATH" | cut -c1-7)"
+              AUTHOR="$(jq -r '.workflow_run.head_commit.author.name' "$GITHUB_EVENT_PATH")"
+              TRIGGERING_ACTOR="$(jq -r '.workflow_run.triggering_actor.login' "$GITHUB_EVENT_PATH")"
+              RUN_NUMBER="$(jq -r '.workflow_run.run_number' "$GITHUB_EVENT_PATH")"
+              RUN_ATTEMPT="$(jq -r '.workflow_run.run_attempt' "$GITHUB_EVENT_PATH")"
+              JOBS_URL="$(jq -r '.workflow_run.jobs_url' "$GITHUB_EVENT_PATH")"
+              CREATED_AT="$(jq -r '.workflow_run.created_at' "$GITHUB_EVENT_PATH")"
+              UPDATED_AT="$(jq -r '.workflow_run.updated_at' "$GITHUB_EVENT_PATH")"
+
+              # 実行時間を計算（秒）
+              CREATED_TIMESTAMP=$(date -u -d "$CREATED_AT" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$CREATED_AT" +%s 2>/dev/null || echo "0")
+              UPDATED_TIMESTAMP=$(date -u -d "$UPDATED_AT" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$UPDATED_AT" +%s 2>/dev/null || echo "0")
+              DURATION_SECONDS=$((UPDATED_TIMESTAMP - CREATED_TIMESTAMP))
+
+              # 分と秒に変換
+              if [ "$DURATION_SECONDS" -gt 0 ]; then
+                DURATION_MINUTES=$((DURATION_SECONDS / 60))
+                DURATION_SECS=$((DURATION_SECONDS % 60))
+                if [ "$DURATION_MINUTES" -gt 0 ]; then
+                  DURATION="${DURATION_MINUTES}分${DURATION_SECS}秒"
+                else
+                  DURATION="${DURATION_SECS}秒"
+                fi
+              else
+                DURATION="計算不可"
+              fi
+
+              # GitHub APIからジョブの詳細を取得
+              JOBS_DATA=""
+              JOB_SUMMARY=""
+              FAILED_JOBS=""
+
+              if [ -n "${GITHUB_TOKEN:-}" ]; then
+                JOBS_RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                  -H "Accept: application/vnd.github.v3+json" \
+                  "$JOBS_URL")
+
+                # ジョブ一覧を取得
+                JOBS_DATA=$(echo "$JOBS_RESPONSE" | jq -r '.jobs[] | "\(.name):\(.conclusion)"')
+
+                # 成功・失敗のカウント
+                SUCCESS_COUNT=$(echo "$JOBS_DATA" | grep -c ":success" || echo "0")
+                FAILURE_COUNT=$(echo "$JOBS_DATA" | grep -c ":failure" || echo "0")
+                TOTAL_COUNT=$(echo "$JOBS_DATA" | wc -l | tr -d ' ')
+
+                # ジョブサマリーを作成
+                if [ "$TOTAL_COUNT" -gt 0 ]; then
+                  JOB_SUMMARY="${SUCCESS_COUNT}/${TOTAL_COUNT}件成功"
+
+                  # 失敗したジョブの詳細
+                  if [ "$FAILURE_COUNT" -gt 0 ]; then
+                    FAILED_JOBS=$(echo "$JOBS_RESPONSE" | jq -r '.jobs[] | select(.conclusion == "failure") | "• " + .name + " (Step: " + (.steps[] | select(.conclusion == "failure") | .name) + ")"' | head -n 5)
+                    if [ -z "$FAILED_JOBS" ]; then
+                      FAILED_JOBS=$(echo "$JOBS_RESPONSE" | jq -r '.jobs[] | select(.conclusion == "failure") | "• " + .name' | head -n 5)
+                    fi
+                  fi
+                fi
+              else
+                JOB_SUMMARY="ジョブ情報なし"
+              fi
+
+              # 結論に応じて色とテキストを設定
+              if [ "$CONCLUSION" = "success" ]; then
+                COLOR="good"
+                EMOJI="✅"
+                TEXT="CI成功: ${WORKFLOW}"
+              elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "timed_out" ]; then
+                COLOR="danger"
+                EMOJI="⚠️"
+                TEXT="CI失敗: ${WORKFLOW}"
+              elif [ "$CONCLUSION" = "cancelled" ]; then
+                COLOR="warning"
+                EMOJI="⚠️"
+                TEXT="CIキャンセル: ${WORKFLOW}"
+              else
+                echo "send=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+
+              # ペイロード作成
+              PAYLOAD=$(jq -nc \
+                --arg channel "$CHANNEL" \
+                --arg username "$USERNAME" \
+                --arg icon "$ICON_EMOJI" \
+                --arg emoji "$EMOJI" \
+                --arg text "$TEXT" \
+                --arg workflow "$WORKFLOW" \
+                --arg url "$URL" \
+                --arg branch "$BRANCH" \
+                --arg commit "$COMMIT_MSG" \
+                --arg commit_sha "$COMMIT_SHA" \
+                --arg author "$AUTHOR" \
+                --arg trigger "$TRIGGERING_ACTOR" \
+                --arg run_number "$RUN_NUMBER" \
+                --arg run_attempt "$RUN_ATTEMPT" \
+                --arg duration "$DURATION" \
+                --arg job_summary "$JOB_SUMMARY" \
+                --arg failed_jobs "$FAILED_JOBS" \
+                --arg color "$COLOR" \
+                '{
+                  channel: $channel,
+                  username: $username,
+                  icon_emoji: $icon,
+                  text: ($emoji + " " + $text),
+                  attachments: [{
+                    color: $color,
+                    title: ("Run #" + $run_number + " (試行 " + $run_attempt + "): " + $workflow),
+                    title_link: $url,
+                    fields: ([
+                      {title: "ブランチ", value: $branch, short: true},
+                      {title: "実行時間", value: $duration, short: true},
+                      {title: "コミット", value: ($commit + " (`" + $commit_sha + "`)"), short: false},
+                      {title: "作成者", value: $author, short: true},
+                      {title: "トリガー", value: ("@" + $trigger), short: true},
+                      ($job_summary != "" and $job_summary != "ジョブ情報なし" | if . then {title: "ジョブ結果", value: $job_summary, short: true} else empty end),
+                      ($failed_jobs != "" | if . then {title: "❌ 失敗したジョブ", value: $failed_jobs, short: false} else empty end)
+                    ]),
+                    footer: "GitHub Actions",
+                    footer_icon: "https://github.githubassets.com/favicon.ico"
+                  }]
+                }')
+              ;;
+
+            *)
+              echo "send=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+
+          if [ -z "$PAYLOAD" ]; then
+            echo "send=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "send=true" >> "$GITHUB_OUTPUT"
+          printf 'payload=%s\n' "$PAYLOAD" >> "$GITHUB_OUTPUT"
+
+      - name: Send Slack notification
+        if: steps.guard.outputs.enabled == 'true' && steps.compose.outputs.send == 'true'
+        run: |
+          curl -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            -d '${{ steps.compose.outputs.payload }}'
+        env:
+          SLACK_WEBHOOK_URL: ${{ steps.guard.outputs.webhook }}

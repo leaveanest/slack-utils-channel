@@ -1,0 +1,12 @@
+{
+  "$schema": "https://slack.dev/schemas/foundation/slack.json",
+  "manifest": "manifest.ts",
+  "hooks": {
+    "get-hooks": "deno run -q --allow-read --allow-net https://deno.land/x/deno_slack_hooks@1.4.0/mod.ts"
+  },
+  "environments": {
+    "local": {
+      "env_file": ".env"
+    }
+  }
+}

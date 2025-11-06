@@ -1,0 +1,25 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "importMap": "./import_map.json",
+  "compilerOptions": {
+    "strict": true
+  },
+  "fmt": {
+    "exclude": [
+      "CHANGELOG.md"
+    ]
+  },
+  "tasks": {
+    "start": "deno run --allow-all https://deno.land/x/slack_deno_runtime@1.4.0/mod.ts",
+    "fmt": "deno fmt",
+    "lint": "deno lint",
+    "test": "deno test --allow-env --allow-read --allow-net",
+    "check": "deno check manifest.ts workflows/example_workflow.ts",
+    "dev": "slack run workflows/example_workflow",
+    "check-openai-key": "deno run --allow-env --allow-net --allow-read scripts/check_openai_key.ts",
+    "i18n:translate": "deno run --allow-env --allow-read --allow-write --allow-net scripts/translate.ts",
+    "i18n:check": "deno run --allow-read lib/i18n/check.ts",
+    "i18n:test": "deno test --allow-env --allow-read --allow-net lib/i18n/test.ts",
+    "cursor-ci": "deno fmt --check && deno lint && deno check manifest.ts workflows/example_workflow.ts && deno test --allow-env --allow-read --allow-net"
+  }
+}

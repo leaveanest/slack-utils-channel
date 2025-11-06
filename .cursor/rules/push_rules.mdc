@@ -1,0 +1,259 @@
+---
+alwaysApply: true
+---
+
+# Cursor Rules for slack-utils
+
+## コミット前の必須チェックリスト
+
+**重要: git push する前に必ず以下のコマンドをローカルで実行し、全てがパスすることを確認してください。**
+
+### 必須実行コマンド
+
+```bash
+# 1. フォーマットチェック
+deno fmt --check
+
+# 2. リントチェック
+deno lint
+
+# 3. 全テスト実行
+deno test --allow-all
+```
+
+### ワークフロー
+
+1. コードを変更
+2. 上記3つのコマンドを実行
+3. 全てパスしたことを確認
+4. `git add .`
+5. `git commit -m "..."`
+6. `git push`
+
+### 理由
+
+CIでのフォーマットエラーやテスト失敗を防ぐため、ローカルで事前に全てのチェックを実行する必要があります。
+
+## プロジェクト情報
+
+- このプロジェクトはDenoプロジェクトです
+- `package.json` は存在しません
+- 改行コードはLF（Unix形式）に統一されています
+- Slackチャンネル名は `#05-miyazawa` です
+
+## 新規関数作成時のルール
+
+**重要: 新しい関数やモジュールを作成する際は、必ず以下を実施してください。**
+
+### 必須事項
+
+1. **関数にJSDocコメントを追加**
+   - 関数の目的と動作を説明する
+   - パラメータの説明を `@param` で記載
+   - 戻り値の説明を `@returns` で記載
+   - エラーの場合は `@throws` で記載
+
+   ```typescript
+   /**
+    * Slackチャンネルの情報を取得します
+    *
+    * @param client - Slack APIクライアント
+    * @param channelId - 取得対象のチャンネルID
+    * @returns チャンネルの概要情報
+    * @throws {Error} チャンネル情報の取得に失敗した場合
+    */
+   export async function retrieveChannelSummary(
+     client: SlackAPIClient,
+     channelId: string,
+   ): Promise<ChannelSummary> {
+     // ...
+   }
+   ```
+
+2. **テストファイルを作成**
+   - 関数と同じディレクトリに `test.ts` を配置
+   - 正常系と異常系の両方をテスト
+   - テスト名は日本語で明確に記述（例: "正常にチャンネル情報を取得できる"）
+   - モックを使用して外部依存を排除
+
+3. **テストカバレッジ**
+   - 主要な処理パスをカバーする
+   - エッジケースやエラーハンドリングもテスト
+   - 最低限、正常系1つ・異常系1つを含める
+
+### テストファイルの命名規則
+
+- 関数ファイル: `mod.ts` または `{function_name}.ts`
+- テストファイル: `test.ts` または `{function_name}_test.ts`
+- テストファイルは関数ファイルと同じディレクトリに配置
+
+### 参考例
+
+`functions/example_function/` を参照してください：
+
+- `mod.ts`: JSDocコメント付きの関数実装
+- `test.ts`: 正常系・異常系のテストケース
+
+## I18n（多言語対応）ルール
+
+**重要: エラーメッセージやユーザー向けメッセージを記述する際は、必ず以下を実施してください。**
+
+### 必須事項
+
+1. **直接文字列を使わず `t()` 関数を使用**
+   - ハードコードされた文字列は避ける
+   - 全てのユーザー向けメッセージは翻訳可能にする
+
+   ```typescript
+   // ❌ 悪い例
+   throw new Error("Failed to load channel info");
+
+   // ✅ 良い例
+   import { t } from "../../lib/i18n/mod.ts";
+   throw new Error(t("errors.channel_not_found", { error }));
+   ```
+
+2. **英語をベース言語として `locales/en.json` に追加**
+   - 新しいメッセージは必ず `locales/en.json` に追加
+   - 適切なカテゴリ（`errors`, `messages`, `logs`）に配置
+   - プレースホルダーは `{変数名}` の形式で記述
+
+   ```json
+   {
+     "errors": {
+       "user_not_found": "User not found: {userId}"
+     }
+   }
+   ```
+
+3. **自動翻訳ワークフローが日本語を生成**
+   - `locales/en.json` をコミット・プッシュすると自動的に翻訳
+   - GitHub Actionsが `locales/ja.json` を更新してPRを作成
+   - 手動翻訳も可能だが、自動翻訳を推奨
+
+### 対象範囲
+
+以下のメッセージは必ずi18n化してください：
+
+- ✅ エラーメッセージ（`throw new Error()`）
+- ✅ ログメッセージ（`console.log()`, `console.error()`）
+- ✅ ユーザー向けメッセージ（Slack応答など）
+- ✅ 関数の戻り値に含まれるメッセージ
+
+以下は対象外（そのまま記述OK）：
+
+- ❌ コメント（コード内のコメントは日本語可）
+- ❌ 変数名、関数名
+- ❌ デバッグ用の一時的な出力
+
+### プレースホルダーの使用
+
+動的な値はプレースホルダーを使用：
+
+```typescript
+// ✅ 良い例
+t("messages.channel_summary", { name: channel.name, count: memberCount })
+
+// ❌ 悪い例
+`Channel: ${channel.name}, Members: ${memberCount}`
+```
+
+### 整合性チェック
+
+コミット前に必ず実行：
+
+```bash
+# i18n整合性チェック
+deno run --allow-read lib/i18n/check.ts
+
+# i18nテスト
+deno test --allow-all lib/i18n/test.ts
+```
+
+### 参考ドキュメント
+
+詳細は [`docs/i18n-guide.md`](docs/i18n-guide.md) を参照してください。
+
+## 例外処理ルール
+
+**重要: API通信とバリデーションでは、必ず適切な例外処理を実装してください。**
+
+### 必須事項
+
+1. **Slack API呼び出しは必ず `response.ok` をチェック**
+   - データアクセス前に必ず確認
+   - エラー時は `response.error` を使用
+   - エラーメッセージは i18n化
+
+2. **入力値は必ずバリデーション**
+   - 型チェック（型ガード使用）
+   - 空文字・null・undefinedチェック
+   - フォーマット検証（必要に応じて）
+
+3. **エラーは必ず `Error` オブジェクトでthrow**
+   - 文字列の直接throwは禁止
+   - エラーメッセージは i18n化必須
+   - プレースホルダーで詳細情報を含める
+
+4. **Slack関数は try-catch でラップ**
+   - エラー時は `{ error: message }` を返す
+   - エラーログを出力（デバッグ用）
+   - エラーメッセージは型安全に取得
+
+### 参考例
+
+詳細は [`CLAUDE.md`](../../CLAUDE.md) の「🚨 例外処理ルール」セクションを参照してください。
+
+## バリデーション（Zod）ルール
+
+**重要: 入力値は必ずZodでバリデーションしてください。**
+
+### 必須事項
+
+1. **共通スキーマを使用**
+   - `lib/validation/schemas.ts` の既存スキーマを優先使用
+   - 新規スキーマは同ファイルに追加し、テストも作成
+
+2. **型推論を活用**
+   - `z.infer<typeof schema>` で型を自動生成
+   - 手動型定義の重複を避ける
+
+3. **safeParse() を推奨**
+   - try-catchが不要でエラーハンドリングが簡潔
+   - エラー詳細が取得しやすい
+
+### 使用例
+
+```typescript
+import { channelIdSchema } from "../../lib/validation/schemas.ts";
+import { t } from "../../lib/i18n/mod.ts";
+
+// Zodバリデーション（推奨パターン）
+const result = channelIdSchema.safeParse(inputs.channel_id);
+if (!result.success) {
+  throw new Error(t("errors.invalid_format", {
+    field: "channel_id",
+    error: result.error.message
+  }));
+}
+
+// または parse() を使用（簡潔だがtry-catchが必要）
+try {
+  const channelId = channelIdSchema.parse(inputs.channel_id);
+} catch (error) {
+  // エラーハンドリング
+}
+```
+
+### 新規スキーマの追加
+
+新しいスキーマを追加する場合：
+
+1. `lib/validation/schemas.ts` に追加
+2. JSDocコメントで説明を記述
+3. 型推論をエクスポート
+4. `lib/validation/test.ts` にテストを追加
+
+### 参考ドキュメント
+
+詳細は [`CLAUDE.md`](../../CLAUDE.md) の「🔒 バリデーション（Zod）」セクションを参照してください。

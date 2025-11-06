@@ -1,0 +1,13 @@
+.env
+.slack/
+dist/
+node_modules/
+.DS_Store
+*.log
+coverage/
+cov/
+cov.lcov
+
+# Review materials (do not push)
+docs/review-prep.md
+docs/review-presentation.md

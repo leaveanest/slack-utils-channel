@@ -1,0 +1,124 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Release please
+        id: release
+        uses: google-github-actions/release-please-action@v4
+        with:
+          release-type: simple
+
+      - name: Setup Node.js
+        if: steps.release.outputs.release_created == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: https://registry.npmjs.org
+
+      - name: Setup Deno
+        if: steps.release.outputs.release_created == 'true'
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Prepare release asset
+        if: steps.release.outputs.release_created == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='${{ steps.release.outputs.tag_name }}'
+          if [ -z "$TAG" ]; then
+            echo "RELEASE_ASSET_FILE=" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          mkdir -p release-artifacts
+          FILE="release-artifacts/slack-utils-template-${TAG}.zip"
+          CONTENTS=(assets functions workflows triggers manifest.ts deno.jsonc README.md import_map.json slack.json)
+          EXISTING=()
+          for item in "${CONTENTS[@]}"; do
+            if [ -e "$item" ]; then
+              EXISTING+=("$item")
+            fi
+          done
+          if [ ${#EXISTING[@]} -eq 0 ]; then
+            echo "No files found for packaging." >&2
+            echo "RELEASE_ASSET_FILE=" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          zip -r "$FILE" "${EXISTING[@]}" >/dev/null
+          echo "Created release asset $FILE"
+          echo "RELEASE_ASSET_FILE=$FILE" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Publish to npm
+        if: steps.release.outputs.release_created == 'true' && hashFiles('package.json') != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
+
+      - name: Publish to JSR
+        if: steps.release.outputs.release_created == 'true' && hashFiles('jsr.json') != ''
+        env:
+          DENO_AUTH_TOKEN: ${{ secrets.JSR_TOKEN }}
+        run: deno publish
+
+      - name: Install semantic-release dependencies
+        if: steps.release.outputs.release_created == 'true'
+        shell: bash
+        run: |
+          if [ ! -f package.json ]; then
+            npm init -y >/dev/null 2>&1
+          fi
+          npm install --save-dev semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator conventional-changelog-conventionalcommits
+
+      - name: Generate bilingual release notes
+        if: steps.release.outputs.release_created == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/run-semantic-release.cjs
+
+      - name: Update GitHub release notes
+        if: steps.release.outputs.release_created == 'true' && hashFiles('release-notes.md') != ''
+        uses: actions/github-script@v7
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const notes = fs.readFileSync('release-notes.md', 'utf8');
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: process.env.RELEASE_TAG,
+            });
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              body: notes,
+            });
+
+      - name: Upload release asset
+        if: steps.release.outputs.release_created == 'true' && env.RELEASE_ASSET_FILE != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          RELEASE_ASSET_FILE: ${{ env.RELEASE_ASSET_FILE }}
+        run: gh release upload "$RELEASE_TAG" "$RELEASE_ASSET_FILE" --clobber

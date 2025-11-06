@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    // 必須拡張機能
+    "denoland.vscode-deno",
+    "github.copilot",
+
+    // 推奨拡張機能
+    "eamodio.gitlens",
+    "usernamehw.errorlens",
+    "github.vscode-pull-request-github",
+    "ms-vscode.vscode-typescript-next",
+
+    // オプション（必要に応じて）
+    "dbaeumer.vscode-eslint"
+  ],
+  "unwantedRecommendations": [
+    // Node.js関連の拡張機能は不要（Denoプロジェクトのため）
+    "ms-vscode.node-debug2",
+    "ms-vscode.node-debug"
+  ]
+}

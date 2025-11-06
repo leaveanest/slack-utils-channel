@@ -1,0 +1,38 @@
+name: I18n Integrity Check
+
+on:
+  pull_request:
+    paths:
+      - "locales/**"
+      - "lib/i18n/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "locales/**"
+      - "lib/i18n/**"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+
+      - name: Run i18n integrity check
+        run: |
+          deno run --allow-read lib/i18n/check.ts
+
+      - name: Check completed
+        if: success()
+        run: |
+          echo "✅ I18n integrity check passed"
+          echo "All locale files are consistent and complete"

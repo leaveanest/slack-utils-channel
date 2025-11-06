@@ -1,0 +1,109 @@
+name: I18n Auto Translation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "locales/en.json"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force translation even if no changes"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+
+      - name: Check for changes in en.json
+        id: check_changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.force }}" = "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Force translation requested"
+          elif git diff HEAD^ HEAD --name-only | grep -q "locales/en.json"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in locales/en.json"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes in locales/en.json"
+          fi
+
+      - name: Run translation script
+        if: steps.check_changes.outputs.changed == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          deno run --allow-env --allow-read --allow-write --allow-net scripts/translate.ts
+
+      - name: Check for translation changes
+        if: steps.check_changes.outputs.changed == 'true'
+        id: check_diff
+        run: |
+          if git diff --quiet locales/ja.json; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes in translated file"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Translation changes detected"
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true' && steps.check_diff.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(i18n): auto-translate Japanese locale"
+          title: "🌍 Auto-translate Japanese locale"
+          body: |
+            ## 🤖 Automated Translation
+
+            This PR contains automatically translated Japanese locale based on changes to `locales/en.json`.
+
+            ### Changes
+            - ✅ Translated with Anthropic Claude Haiku 4.5
+            - ✅ Placeholders preserved
+            - ✅ JSON structure maintained
+
+            ### Review Checklist
+            - [ ] Translation accuracy
+            - [ ] Natural Japanese phrasing
+            - [ ] Technical terms appropriately translated
+            - [ ] Placeholders intact (e.g., `{name}`, `{error}`)
+
+            **Note:** Please review the translations before merging, as automated translations may need human refinement.
+          branch: i18n/auto-translate-ja
+          delete-branch: true
+          labels: |
+            i18n
+            automated
+            translation
+
+      - name: Comment on completion
+        if: steps.check_changes.outputs.changed == 'true' && steps.check_diff.outputs.has_changes == 'true'
+        run: |
+          echo "✅ Translation completed and PR created"
+          echo "📝 Please review the translations for accuracy"
+
+      - name: No changes needed
+        if: steps.check_changes.outputs.changed == 'false' || steps.check_diff.outputs.has_changes == 'false'
+        run: |
+          echo "ℹ️  No translation needed - no changes detected"
