@@ -49,7 +49,7 @@ Deno.test({
 
           // 1回目の呼び出し: 最初のページ（cursorなし）
           if (callCount === 1) {
-            assertEquals(args.cursor, undefined);
+            assertEquals(args!.cursor, undefined);
             return Promise.resolve({
               ok: true,
               members: ["U00001", "U00002"],
@@ -61,7 +61,7 @@ Deno.test({
 
           // 2回目の呼び出し: 2ページ目
           if (callCount === 2) {
-            assertEquals(args.cursor, "cursor_page_2");
+            assertEquals(args!.cursor, "cursor_page_2");
             return Promise.resolve({
               ok: true,
               members: ["U00003", "U00004"],
@@ -72,7 +72,7 @@ Deno.test({
           }
 
           // 3回目の呼び出し: 最後のページ
-          assertEquals(args.cursor, "cursor_page_3");
+          assertEquals(args!.cursor, "cursor_page_3");
           return Promise.resolve({
             ok: true,
             members: ["U00005"],

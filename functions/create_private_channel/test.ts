@@ -39,8 +39,8 @@ Deno.test({
         create(
           args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
-          assertEquals(args.name, "test-channel");
-          assertEquals(args.is_private, true);
+          assertEquals(args!.name, "test-channel");
+          assertEquals(args!.is_private, true);
           return Promise.resolve({
             ok: true,
             channel: {
@@ -84,8 +84,8 @@ Deno.test({
         setTopic(
           args: ConversationsSetTopicArgs,
         ): Promise<ConversationsSetTopicResult> {
-          assertEquals(args.channel, "C12345");
-          assertEquals(args.topic, "Test description");
+          assertEquals(args!.channel, "C12345");
+          assertEquals(args!.topic, "Test description");
           return Promise.resolve({
             ok: true,
           } as unknown as ConversationsSetTopicResult);
@@ -126,8 +126,8 @@ Deno.test({
         invite(
           args: ConversationsInviteArgs,
         ): Promise<ConversationsInviteResult> {
-          assertEquals(args.channel, "C12345");
-          assertEquals(args.users, "U12345,U67890");
+          assertEquals(args!.channel, "C12345");
+          assertEquals(args!.users, "U12345,U67890");
           return Promise.resolve({
             ok: true,
           } as unknown as ConversationsInviteResult);
@@ -169,8 +169,8 @@ Deno.test({
         setTopic(
           args: ConversationsSetTopicArgs,
         ): Promise<ConversationsSetTopicResult> {
-          assertEquals(args.channel, "C12345");
-          assertEquals(args.topic, "Alpha project discussion");
+          assertEquals(args!.channel, "C12345");
+          assertEquals(args!.topic, "Alpha project discussion");
           return Promise.resolve({
             ok: true,
           } as unknown as ConversationsSetTopicResult);
@@ -178,8 +178,8 @@ Deno.test({
         invite(
           args: ConversationsInviteArgs,
         ): Promise<ConversationsInviteResult> {
-          assertEquals(args.channel, "C12345");
-          assertEquals(args.users, "U11111,U22222,U33333");
+          assertEquals(args!.channel, "C12345");
+          assertEquals(args!.users, "U11111,U22222,U33333");
           return Promise.resolve({
             ok: true,
           } as unknown as ConversationsInviteResult);
