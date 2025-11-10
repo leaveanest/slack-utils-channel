@@ -132,7 +132,7 @@ export async function createPrivateChannel(
     if (teamResponse.ok && teamResponse.team) {
       teamId = teamResponse.team.id;
     }
-  } catch (error) {
+  } catch (_error) {
     // team.info が利用できない環境（非Enterprise Grid）では無視
     console.log("team.info not available, skipping team_id");
   }
