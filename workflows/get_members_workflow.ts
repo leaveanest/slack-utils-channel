@@ -22,7 +22,7 @@ const GetMembersWorkflow = DefineWorkflow({
 });
 
 // チャンネルメンバーを取得
-const getMembersStep = GetMembersWorkflow.addStep(
+GetMembersWorkflow.addStep(
   GetChannelMembersDefinition,
   {
     channel_id: GetMembersWorkflow.inputs.channel_id,

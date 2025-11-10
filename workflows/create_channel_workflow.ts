@@ -37,7 +37,7 @@ const CreateChannelWorkflow = DefineWorkflow({
 });
 
 // プライベートチャンネルを作成
-const createStep = CreateChannelWorkflow.addStep(
+CreateChannelWorkflow.addStep(
   CreatePrivateChannelDefinition,
   {
     channel_name: CreateChannelWorkflow.inputs.channel_name,
