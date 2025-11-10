@@ -61,7 +61,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: runner.os == 'Linux'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v4
         with:
           files: cov.lcov
           fail_ci_if_error: false
