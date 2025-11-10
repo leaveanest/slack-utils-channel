@@ -125,10 +125,23 @@ export async function createPrivateChannel(
 
   console.log(t("logs.creating_channel", { name: normalizedName }));
 
+  // Enterprise Grid環境対応: team_idを取得
+  let teamId: string | undefined;
+  try {
+    const teamResponse = await client.team.info();
+    if (teamResponse.ok && teamResponse.team) {
+      teamId = teamResponse.team.id;
+    }
+  } catch (error) {
+    // team.info が利用できない環境（非Enterprise Grid）では無視
+    console.log("team.info not available, skipping team_id");
+  }
+
   // 1. プライベートチャンネルを作成
   const createResponse = await client.conversations.create({
     name: normalizedName,
     is_private: true,
+    ...(teamId && { team_id: teamId }),
   });
 
   if (!createResponse.ok || !createResponse.channel) {
