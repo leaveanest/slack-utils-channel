@@ -15,15 +15,12 @@ const CreateChannelTrigger: Trigger<typeof CreateChannelWorkflow.definition> = {
   workflow: `#/workflows/${CreateChannelWorkflow.definition.callback_id}`,
   inputs: {
     channel_name: {
-      value: "",
       customizable: true,
     },
     description: {
-      value: "",
       customizable: true,
     },
     initial_members: {
-      value: [],
       customizable: true,
     },
     notification_channel: {
