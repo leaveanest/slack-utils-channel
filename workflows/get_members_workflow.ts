@@ -32,7 +32,8 @@ const getMembersStep = GetMembersWorkflow.addStep(
 // 結果をメッセージで表示
 GetMembersWorkflow.addStep(Schema.slack.functions.SendMessage, {
   channel_id: GetMembersWorkflow.inputs.channel_id,
-  message: "✅ Channel members retrieved! Check the workflow output for details.",
+  message:
+    "✅ Channel members retrieved! Check the workflow output for details.",
 });
 
 export default GetMembersWorkflow;

@@ -49,7 +49,8 @@ const createStep = CreateChannelWorkflow.addStep(
 // 結果をメッセージで表示
 CreateChannelWorkflow.addStep(Schema.slack.functions.SendMessage, {
   channel_id: CreateChannelWorkflow.inputs.notification_channel,
-  message: "✅ Private channel created successfully! Check the workflow output for details.",
+  message:
+    "✅ Private channel created successfully! Check the workflow output for details.",
 });
 
 export default CreateChannelWorkflow;
