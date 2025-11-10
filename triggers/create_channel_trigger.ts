@@ -15,8 +15,7 @@ const CreateChannelTrigger: Trigger<typeof CreateChannelWorkflow.definition> = {
   workflow: `#/workflows/${CreateChannelWorkflow.definition.callback_id}`,
   inputs: {
     channel_name: {
-      value: TriggerContextData.Shortcut.interactivity.interactor.id,
-      // ユーザーがフォームで入力
+      value: "",
       customizable: true,
     },
     description: {
