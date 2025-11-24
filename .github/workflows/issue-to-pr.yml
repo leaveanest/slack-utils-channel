@@ -19,7 +19,7 @@ jobs:
       BRANCH_NAME: codex/issue-${{ github.event.issue.number }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
