@@ -125,30 +125,14 @@ export async function createPrivateChannel(
 
   console.log(t("logs.creating_channel", { name: normalizedName }));
 
-  // Enterprise Grid環境対応: team_idを取得
-  let teamId: string | undefined;
-  try {
-    const teamResponse = await client.team.info();
-    console.log("team.info response:", JSON.stringify(teamResponse));
-    if (teamResponse.ok && teamResponse.team) {
-      teamId = teamResponse.team.id;
-      console.log("team_id acquired:", teamId);
-    } else {
-      console.log("team.info returned ok=false or no team data");
-    }
-  } catch (error) {
-    // team.info が利用できない環境（非Enterprise Grid）では無視
-    console.log("team.info not available, skipping team_id", error);
-  }
-
   // 1. プライベートチャンネルを作成
-  const createParams = {
+  // Note: Run on Slack does not support team:read scope,
+  // so we cannot use team_id parameter for Enterprise Grid.
+  // This may cause issues in Enterprise Grid environments.
+  const createResponse = await client.conversations.create({
     name: normalizedName,
-    is_private: true, // プライベートとして作成
-    ...(teamId && { team_id: teamId }),
-  };
-  console.log("conversations.create params:", JSON.stringify(createParams));
-  const createResponse = await client.conversations.create(createParams);
+    is_private: true,
+  });
 
   if (!createResponse.ok || !createResponse.channel) {
     const error = createResponse.error ?? t("errors.unknown_error");
