@@ -16,21 +16,26 @@ const CreateChannelWorkflow = DefineWorkflow({
         type: Schema.types.string,
         description: "Channel name (without #)",
       },
+      team_id: {
+        type: Schema.slack.types.team_id,
+        description: "Team ID (required for Enterprise Grid, can be set via SLACK_TEAM_ID env var)",
+      },
       notification_channel: {
         type: Schema.slack.types.channel_id,
         description: "Channel to send notification",
       },
     },
-    required: ["channel_name", "notification_channel"],
+    required: ["channel_name", "team_id", "notification_channel"],
   },
 });
 
 // Slack組み込みのCreateChannel関数を使用してプライベートチャンネルを作成
-// Note: team_id is omitted - it's only required for Enterprise Grid environments
+// team_id is required for Enterprise Grid environments
 CreateChannelWorkflow.addStep(
   Schema.slack.functions.CreateChannel,
   {
     channel_name: CreateChannelWorkflow.inputs.channel_name,
+    team_id: CreateChannelWorkflow.inputs.team_id,
     is_private: true, // プライベートチャンネルとして作成
   },
 );
