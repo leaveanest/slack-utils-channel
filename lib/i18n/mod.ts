@@ -52,7 +52,16 @@ export async function loadLocale(lang: string): Promise<LocaleData> {
       );
       return await loadLocale("en");
     }
-    throw error;
+
+    // If even English fails (e.g., in production environment with restricted file access),
+    // return empty object to allow the app to run without translations
+    console.warn(
+      `Failed to load English locale, using empty translations:`,
+      error,
+    );
+    const emptyData = {};
+    localeCache.set(lang, emptyData);
+    return emptyData;
   }
 }
 
@@ -82,6 +91,7 @@ export function getLocale(): string {
  * @returns Detected locale code
  */
 export function detectLocale(): SupportedLocale {
+  try {
   // Check LOCALE environment variable first
   const locale = Deno.env.get("LOCALE") || Deno.env.get("LANG") || "en";
 
@@ -92,6 +102,11 @@ export function detectLocale(): SupportedLocale {
   return SUPPORTED_LOCALES.includes(langCode as SupportedLocale)
     ? langCode as SupportedLocale
     : "en";
+  } catch (_error) {
+    // Environment variable access not allowed (e.g., in production environment)
+    // Default to English
+    return "en";
+  }
 }
 
 /**
