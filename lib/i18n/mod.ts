@@ -92,16 +92,16 @@ export function getLocale(): string {
  */
 export function detectLocale(): SupportedLocale {
   try {
-  // Check LOCALE environment variable first
-  const locale = Deno.env.get("LOCALE") || Deno.env.get("LANG") || "en";
+    // Check LOCALE environment variable first
+    const locale = Deno.env.get("LOCALE") || Deno.env.get("LANG") || "en";
 
-  // Extract language code (e.g., "ja_JP.UTF-8" -> "ja")
-  const langCode = locale.split(/[_.]/)[0].toLowerCase();
+    // Extract language code (e.g., "ja_JP.UTF-8" -> "ja")
+    const langCode = locale.split(/[_.]/)[0].toLowerCase();
 
-  // Return if supported, otherwise default to English
-  return SUPPORTED_LOCALES.includes(langCode as SupportedLocale)
-    ? langCode as SupportedLocale
-    : "en";
+    // Return if supported, otherwise default to English
+    return SUPPORTED_LOCALES.includes(langCode as SupportedLocale)
+      ? langCode as SupportedLocale
+      : "en";
   } catch (_error) {
     // Environment variable access not allowed (e.g., in production environment)
     // Default to English
