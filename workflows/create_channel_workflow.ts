@@ -16,12 +16,16 @@ const CreateChannelWorkflow = DefineWorkflow({
         type: Schema.types.string,
         description: "Channel name (without #)",
       },
+      team_id: {
+        type: Schema.slack.types.team_id,
+        description: "Team ID (required for Enterprise Grid)",
+      },
       notification_channel: {
         type: Schema.slack.types.channel_id,
         description: "Channel to send notification",
       },
     },
-    required: ["channel_name", "notification_channel"],
+    required: ["channel_name", "team_id", "notification_channel"],
   },
 });
 
@@ -30,6 +34,7 @@ const createStep = CreateChannelWorkflow.addStep(
   Schema.slack.functions.CreateChannel,
   {
     channel_name: CreateChannelWorkflow.inputs.channel_name,
+    team_id: CreateChannelWorkflow.inputs.team_id,
     is_private: true, // プライベートチャンネルとして作成
   },
 );
@@ -37,8 +42,7 @@ const createStep = CreateChannelWorkflow.addStep(
 // 結果をメッセージで表示
 CreateChannelWorkflow.addStep(Schema.slack.functions.SendMessage, {
   channel_id: CreateChannelWorkflow.inputs.notification_channel,
-  message:
-    `✅ Private channel created successfully!\nChannel ID: ${createStep.outputs.channel_id}`,
+  message: "✅ Private channel created successfully!",
 });
 
 export default CreateChannelWorkflow;

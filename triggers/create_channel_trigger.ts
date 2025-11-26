@@ -17,6 +17,9 @@ const CreateChannelTrigger: Trigger<typeof CreateChannelWorkflow.definition> = {
     channel_name: {
       customizable: true,
     },
+    team_id: {
+      value: TriggerContextData.Shortcut.team_id,
+    },
     notification_channel: {
       value: TriggerContextData.Shortcut.channel_id,
     },
