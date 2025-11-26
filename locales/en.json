@@ -11,7 +11,6 @@
     "invalid_format": "Invalid format for {field}: expected {pattern}",
     "channel_members_fetch_failed": "Failed to fetch channel members: {error}",
     "channel_create_failed": "Failed to create channel: {error}",
-    "channel_convert_failed": "Failed to convert channel to private: {error} (channel {channel_id} remains public)",
     "invalid_channel_name": "Invalid channel name: {name}",
     "member_invite_failed": "Failed to invite members: {error}",
     "channel_topic_set_failed": "Failed to set channel topic: {error}",
@@ -39,8 +38,7 @@
     "channel_loaded": "Channel {name} loaded successfully",
     "fetching_members": "Fetching members for channel {channelId}...",
     "creating_channel": "Creating private channel: {name}",
-    "channel_created_public": "Public channel created with ID: {id}",
-    "channel_converted_to_private": "Channel {id} successfully converted to private",
+    "channel_created_private": "Private channel created with ID: {id}",
     "inviting_members": "Inviting {count} members..."
   }
 }

@@ -11,7 +11,6 @@
     "invalid_format": "{field} の形式が無効です: 期待されるのは {pattern} です",
     "channel_members_fetch_failed": "チャンネルメンバーの取得に失敗しました: {error}",
     "channel_create_failed": "チャンネルの作成に失敗しました: {error}",
-    "channel_convert_failed": "チャンネルをプライベートに変換できませんでした: {error} (チャンネル {channel_id} はパブリックのまま残っています)",
     "invalid_channel_name": "無効なチャンネル名です: {name}",
     "member_invite_failed": "メンバーの招待に失敗しました: {error}",
     "channel_topic_set_failed": "チャンネルトピックの設定に失敗しました: {error}",
@@ -39,8 +38,7 @@
     "channel_loaded": "チャンネル {name} が正常に読み込まれました",
     "fetching_members": "チャンネル {channelId} のメンバーを取得中...",
     "creating_channel": "プライベートチャンネルを作成中: {name}",
-    "channel_created_public": "パブリックチャンネルを作成しました（ID: {id}）",
-    "channel_converted_to_private": "チャンネル {id} をプライベートに変換しました",
+    "channel_created_private": "プライベートチャンネルを作成しました（ID: {id}）",
     "inviting_members": "{count} 人のメンバーを招待中..."
   }
 }

@@ -141,10 +141,10 @@ export async function createPrivateChannel(
     console.log("team.info not available, skipping team_id", error);
   }
 
-  // 1. まずパブリックチャンネルを作成
+  // 1. プライベートチャンネルを作成
   const createParams = {
     name: normalizedName,
-    is_private: false, // パブリックとして作成
+    is_private: true, // プライベートとして作成
     ...(teamId && { team_id: teamId }),
   };
   console.log("conversations.create params:", JSON.stringify(createParams));
@@ -156,26 +156,11 @@ export async function createPrivateChannel(
   }
 
   const channelId = createResponse.channel.id as string;
-  console.log(t("logs.channel_created_public", { id: channelId }));
-
-  // 2. パブリックチャンネルをプライベートに変換
-  const convertResponse = await client.admin.conversations.convertToPrivate({
-    channel_id: channelId,
-  });
-
-  if (!convertResponse.ok) {
-    const error = convertResponse.error ?? t("errors.unknown_error");
-    // 変換失敗した場合、作成したパブリックチャンネルは残るが、エラーを投げる
-    throw new Error(
-      t("errors.channel_convert_failed", { error, channel_id: channelId }),
-    );
-  }
-
-  console.log(t("logs.channel_converted_to_private", { id: channelId }));
+  console.log(t("logs.channel_created_private", { id: channelId }));
 
   let memberCount = 1; // Bot自身
 
-  // 3. 説明（トピック）を設定（オプション）
+  // 2. 説明（トピック）を設定（オプション）
   if (description && description.trim().length > 0) {
     const topicResponse = await client.conversations.setTopic({
       channel: channelId,
@@ -189,7 +174,7 @@ export async function createPrivateChannel(
     }
   }
 
-  // 4. 初期メンバーを招待（オプション）
+  // 3. 初期メンバーを招待（オプション）
   if (initialMembers && initialMembers.length > 0) {
     console.log(t("logs.inviting_members", { count: initialMembers.length }));
 

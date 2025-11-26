@@ -36,6 +36,5 @@ export default Manifest({
     "groups:write", // プライベートチャンネルの作成・管理
     "users:read", // ユーザー情報の読み取り
     "team:read", // Enterprise Grid: team_id取得用
-    "admin.conversations:write", // Enterprise Grid: チャンネルをプライベートに変換
   ],
 });

@@ -15,15 +15,6 @@ type ConversationsInvite = SlackAPIClient["conversations"]["invite"];
 type ConversationsInviteArgs = Parameters<ConversationsInvite>[0];
 type ConversationsInviteResult = Awaited<ReturnType<ConversationsInvite>>;
 
-type AdminConversationsConvertToPrivate =
-  SlackAPIClient["admin"]["conversations"]["convertToPrivate"];
-type AdminConversationsConvertToPrivateArgs = Parameters<
-  AdminConversationsConvertToPrivate
->[0];
-type AdminConversationsConvertToPrivateResult = Awaited<
-  ReturnType<AdminConversationsConvertToPrivate>
->;
-
 Deno.test({
   name: "normalizeChannelName: チャンネル名を正しく正規化する",
   fn: () => {
@@ -49,7 +40,7 @@ Deno.test({
           args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
           assertEquals(args!.name, "test-channel");
-          assertEquals(args!.is_private, false); // パブリックとして作成
+          assertEquals(args!.is_private, true);
           return Promise.resolve({
             ok: true,
             channel: {
@@ -57,18 +48,6 @@ Deno.test({
               name: "test-channel",
             },
           } as unknown as ConversationsCreateResult);
-        },
-      },
-      admin: {
-        conversations: {
-          convertToPrivate(
-            args: AdminConversationsConvertToPrivateArgs,
-          ): Promise<AdminConversationsConvertToPrivateResult> {
-            assertEquals(args!.channel_id, "C12345");
-            return Promise.resolve({
-              ok: true,
-            } as unknown as AdminConversationsConvertToPrivateResult);
-          },
         },
       },
     } as unknown as SlackAPIClient;
@@ -112,18 +91,6 @@ Deno.test({
           } as unknown as ConversationsSetTopicResult);
         },
       },
-      admin: {
-        conversations: {
-          convertToPrivate(
-            args: AdminConversationsConvertToPrivateArgs,
-          ): Promise<AdminConversationsConvertToPrivateResult> {
-            assertEquals(args!.channel_id, "C12345");
-            return Promise.resolve({
-              ok: true,
-            } as unknown as AdminConversationsConvertToPrivateResult);
-          },
-        },
-      },
     } as unknown as SlackAPIClient;
 
     const result = await createPrivateChannel(
@@ -164,18 +131,6 @@ Deno.test({
           return Promise.resolve({
             ok: true,
           } as unknown as ConversationsInviteResult);
-        },
-      },
-      admin: {
-        conversations: {
-          convertToPrivate(
-            args: AdminConversationsConvertToPrivateArgs,
-          ): Promise<AdminConversationsConvertToPrivateResult> {
-            assertEquals(args!.channel_id, "C12345");
-            return Promise.resolve({
-              ok: true,
-            } as unknown as AdminConversationsConvertToPrivateResult);
-          },
         },
       },
     } as unknown as SlackAPIClient;
@@ -228,18 +183,6 @@ Deno.test({
           return Promise.resolve({
             ok: true,
           } as unknown as ConversationsInviteResult);
-        },
-      },
-      admin: {
-        conversations: {
-          convertToPrivate(
-            args: AdminConversationsConvertToPrivateArgs,
-          ): Promise<AdminConversationsConvertToPrivateResult> {
-            assertEquals(args!.channel_id, "C12345");
-            return Promise.resolve({
-              ok: true,
-            } as unknown as AdminConversationsConvertToPrivateResult);
-          },
         },
       },
     } as unknown as SlackAPIClient;
@@ -334,17 +277,6 @@ Deno.test({
           } as unknown as ConversationsSetTopicResult);
         },
       },
-      admin: {
-        conversations: {
-          convertToPrivate(
-            _args: AdminConversationsConvertToPrivateArgs,
-          ): Promise<AdminConversationsConvertToPrivateResult> {
-            return Promise.resolve({
-              ok: true,
-            } as unknown as AdminConversationsConvertToPrivateResult);
-          },
-        },
-      },
     } as unknown as SlackAPIClient;
 
     // トピック設定失敗でもチャンネル作成は成功する
@@ -386,17 +318,6 @@ Deno.test({
           } as unknown as ConversationsInviteResult);
         },
       },
-      admin: {
-        conversations: {
-          convertToPrivate(
-            _args: AdminConversationsConvertToPrivateArgs,
-          ): Promise<AdminConversationsConvertToPrivateResult> {
-            return Promise.resolve({
-              ok: true,
-            } as unknown as AdminConversationsConvertToPrivateResult);
-          },
-        },
-      },
     } as unknown as SlackAPIClient;
 
     // メンバー招待失敗でもチャンネル作成は成功する
@@ -410,52 +331,5 @@ Deno.test({
     assertEquals(result.channel_id, "C12345");
     assertEquals(result.channel_name, "test-channel");
     assertEquals(result.member_count, 1); // Botのみ（招待失敗）
-  },
-});
-
-Deno.test({
-  name: "プライベート変換API エラー時には例外を投げる",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  fn: async () => {
-    const mockClient = {
-      conversations: {
-        create(
-          _args: ConversationsCreateArgs,
-        ): Promise<ConversationsCreateResult> {
-          return Promise.resolve({
-            ok: true,
-            channel: {
-              id: "C12345",
-              name: "test-channel",
-            },
-          } as unknown as ConversationsCreateResult);
-        },
-      },
-      admin: {
-        conversations: {
-          convertToPrivate(
-            _args: AdminConversationsConvertToPrivateArgs,
-          ): Promise<AdminConversationsConvertToPrivateResult> {
-            return Promise.resolve({
-              ok: false,
-              error: "channel_not_found",
-            } as unknown as AdminConversationsConvertToPrivateResult);
-          },
-        },
-      },
-    } as unknown as SlackAPIClient;
-
-    // Wait a bit for i18n to initialize
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    const error = await assertRejects(
-      () => createPrivateChannel(mockClient, "test-channel"),
-      Error,
-    );
-
-    // エラーメッセージに変換失敗と元のエラーが含まれる
-    assertEquals(error.message.includes("channel_not_found"), true);
-    assertEquals(error.message.includes("C12345"), true);
   },
 });
