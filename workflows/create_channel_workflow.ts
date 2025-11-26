@@ -1,31 +1,20 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
-import { CreatePrivateChannelDefinition } from "../functions/create_private_channel/mod.ts";
 
 /**
- * プライベートチャンネル作成ワークフロー
+ * プライベートチャンネル作成ワークフロー（組み込み関数使用版）
  *
- * プライベートチャンネルを作成し、オプションで説明と初期メンバーを設定します。
+ * Slack組み込みのCreateChannel関数を使用してプライベートチャンネルを作成します。
+ * Run on Slack環境で確実に動作します。
  */
 const CreateChannelWorkflow = DefineWorkflow({
   callback_id: "create_channel_workflow",
   title: "Create Private Channel",
-  description: "Create a new private channel with optional members",
+  description: "Create a new private channel using built-in Slack function",
   input_parameters: {
     properties: {
       channel_name: {
         type: Schema.types.string,
         description: "Channel name (without #)",
-      },
-      description: {
-        type: Schema.types.string,
-        description: "Channel description (optional)",
-      },
-      initial_members: {
-        type: Schema.types.array,
-        items: {
-          type: Schema.slack.types.user_id,
-        },
-        description: "Initial members to invite (optional)",
       },
       notification_channel: {
         type: Schema.slack.types.channel_id,
@@ -36,13 +25,12 @@ const CreateChannelWorkflow = DefineWorkflow({
   },
 });
 
-// プライベートチャンネルを作成
-CreateChannelWorkflow.addStep(
-  CreatePrivateChannelDefinition,
+// Slack組み込みのCreateChannel関数を使用してプライベートチャンネルを作成
+const createStep = CreateChannelWorkflow.addStep(
+  Schema.slack.functions.CreateChannel,
   {
     channel_name: CreateChannelWorkflow.inputs.channel_name,
-    description: CreateChannelWorkflow.inputs.description,
-    initial_members: CreateChannelWorkflow.inputs.initial_members,
+    is_private: true, // プライベートチャンネルとして作成
   },
 );
 
@@ -50,7 +38,7 @@ CreateChannelWorkflow.addStep(
 CreateChannelWorkflow.addStep(Schema.slack.functions.SendMessage, {
   channel_id: CreateChannelWorkflow.inputs.notification_channel,
   message:
-    "✅ Private channel created successfully! Check the workflow output for details.",
+    `✅ Private channel created successfully!\nChannel ID: ${createStep.outputs.channel_id}`,
 });
 
 export default CreateChannelWorkflow;
