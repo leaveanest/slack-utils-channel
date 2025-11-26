@@ -47,7 +47,24 @@ slack env add local
 SLACK_APP_NAME=Slack Utils Template        # アプリ名
 SLACK_APP_DESCRIPTION=A template...         # アプリの説明
 SLACK_CATEGORY=Channel                      # カテゴリ名（例: Team, Project など）
+
+# Slack Team ID (Enterprise Grid環境で必要)
+SLACK_TEAM_ID=T1234567890                  # あなたのワークスペースのTeam ID
 ```
+
+#### Team ID の取得方法
+
+1. **ブラウザで確認する方法**（最も簡単）
+   - ブラウザでSlackにログイン
+   - URLを確認: `https://app.slack.com/client/T1234567890/...`
+   - `T` で始まる文字列が Team ID です
+
+2. **ブラウザコンソールで確認する方法**
+   - F12 キーで開発者ツールを開く
+   - Console タブで以下を実行:
+     ```javascript
+     boot_data.team_id
+     ```
 
 これらの変数は、ワークフロー、ファンクション、トリガーの名前や説明に自動的に反映されます。
 
