@@ -1,13 +1,40 @@
-# slack-utils-template
+# slack-utils-channel
 
-{description}
+Slackチャンネル管理のためのワークフローアプリケーション
 
 ## 概要
 
-- slack-utils シリーズの共通テンプレートです。
-- {Category} をはじめとした {category} ワークフローを素早く構築できます。
-- Slack Deno SDK v2.0.0
-  を利用し、関数・ワークフロー・トリガーを一貫して管理します。
+- Slackチャンネルの作成・管理を自動化するワークフローを提供します
+- **管理者承認によるプライベートチャンネル作成機能**を搭載
+- Enterprise Grid環境でも、ワークスペースの権限設定に関係なくプライベートチャンネルを作成可能
+- Slack Deno SDK v2.0.0 を利用し、関数・ワークフロー・トリガーを一貫して管理します
+
+## 主な機能
+
+### 🔒 管理者承認によるプライベートチャンネル作成
+
+ワークスペースの権限設定でプライベートチャンネルの作成がオーナーのみに制限されている場合でも、
+管理者の承認を経てプライベートチャンネルを作成できます。
+
+**処理フロー：**
+```
+ユーザー → フォーム入力 → 管理者にリクエスト送信
+                              ↓
+                     [✅ 承認] / [❌ 拒否] ボタン
+                              ↓
+                 承認時: Admin API でチャンネル作成
+                 拒否時: リクエスト者に通知
+```
+
+### 📢 パブリック/プライベートチャンネル作成
+
+通常の `conversations.create` API を使用したチャンネル作成も可能です。
+- パブリックチャンネル: 誰でも作成可能
+- プライベートチャンネル: ワークスペースの権限設定に依存
+
+### 👥 チャンネルメンバー取得
+
+指定したチャンネルのメンバー一覧を取得できます。
 
 ## 前提条件
 
@@ -15,6 +42,7 @@
 - **Slack CLI** が利用可能で、ワークスペースにログイン済みであること
 - **Slack App** を作成できる権限を持っていること
 - **Git** がインストールされていること（Git Hooks使用時）
+- **Enterprise Grid環境**（承認ワークフロー使用時）: Org Owner または Org Admin 権限
 
 詳細は [開発環境のセットアップ](#開発環境のセットアップ) を参照してください。
 
@@ -44,13 +72,45 @@ slack env add local
 
 ```bash
 # Slack App Configuration
-SLACK_APP_NAME=Slack Utils Template        # アプリ名
-SLACK_APP_DESCRIPTION=A template...         # アプリの説明
-SLACK_CATEGORY=Channel                      # カテゴリ名（例: Team, Project など）
+SLACK_APP_NAME=Slack Utils Channel         # アプリ名
+SLACK_APP_DESCRIPTION=Channel management workflows  # アプリの説明
+SLACK_CATEGORY=Channel                     # カテゴリ名
 
-# Slack Team ID (Enterprise Grid環境で必要)
-SLACK_TEAM_ID=T1234567890                  # あなたのワークスペースのTeam ID
+# Admin User Token (承認ワークフロー使用時に必須)
+# 従来型 Slack App から取得した User OAuth Token
+SLACK_ADMIN_USER_TOKEN=xoxp-xxxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxxxx
 ```
+
+#### Admin User Token の取得方法（承認ワークフロー用）
+
+プライベートチャンネルの承認ワークフローを使用するには、`admin.conversations:write` スコープを持つ
+User OAuth Token が必要です。
+
+**Step 1: 従来型 Slack App を作成**
+
+1. [Slack API Apps](https://api.slack.com/apps) にアクセス
+2. 「Create New App」→「From scratch」を選択
+3. アプリ名とワークスペースを設定
+
+**Step 2: OAuth スコープを追加**
+
+1. 「OAuth & Permissions」に移動
+2. 「User Token Scopes」セクションで以下を追加：
+   - `admin.conversations:write` - Admin API でのチャンネル作成/招待
+3. 「Bot Token Scopes」に最低1つのスコープを追加（インストールに必要）：
+   - `chat:write` など
+
+**Step 3: アプリをインストールしてトークン取得**
+
+1. 「Install to Workspace」をクリック
+2. 権限を確認して「許可する」
+3. 「User OAuth Token」（`xoxp-` で始まる）をコピー
+4. `.env` ファイルに設定：
+   ```bash
+   SLACK_ADMIN_USER_TOKEN=xoxp-your-token-here
+   ```
+
+**注意:** このトークンは Org Owner または Org Admin 権限を持つユーザーでインストールする必要があります。
 
 #### Team ID の取得方法
 
@@ -120,14 +180,35 @@ deno test --allow-all --coverage=cov
 deno coverage cov --html
 
 # ローカル実行
-slack run workflows/example_workflow
+slack run
 ```
 
-- `functions/example_function/mod.ts` が {category}
-  チャンネル情報を取得するサンプルです。
-- `workflows/example_workflow.ts` は上記関数を利用して {Category} を分析します。
-- `triggers/example_trigger.ts` を Slack CLI
-  で登録し、ショートカットからワークフローを呼び出せます。
+### 利用可能なワークフロー
+
+| ワークフロー | トリガー | 説明 |
+|-------------|---------|------|
+| `CreateChannelWorkflow` | `create_channel_trigger.ts` | パブリック/プライベートチャンネルを作成 |
+| `RequestPrivateChannelWorkflow` | `request_private_channel_trigger.ts` | 承認を経てプライベートチャンネルを作成 |
+| `GetMembersWorkflow` | `get_members_trigger.ts` | チャンネルメンバー一覧を取得 |
+| `ExampleWorkflow` | `example_trigger.ts` | サンプルワークフロー |
+
+### トリガーの登録
+
+```bash
+# slack run 実行時に自動でトリガーを選択・作成できます
+slack run
+
+# または手動で作成
+slack triggers create --trigger-file triggers/request_private_channel_trigger.ts
+```
+
+### 承認ワークフローの使い方
+
+1. Slackでショートカット「Request Private Channel」を実行
+2. フォームでチャンネル名、説明、初期メンバー、承認者を入力
+3. 承認者にリクエストが通知される
+4. 承認者が「✅ 承認」をクリックするとチャンネルが作成される
+5. リクエスト者と初期メンバーが自動的に招待される
 
 ## テスト
 
@@ -528,16 +609,32 @@ slack triggers create --trigger-file triggers/example_trigger.ts
 ## プロジェクト構成
 
 ```
-slack-utils-template/
-├── functions/         # Slack Functions（各関数にtest.tsを配置）
-├── workflows/         # Slack Workflows
-├── triggers/          # Slack Triggers
-├── docs/              # ドキュメント（テストガイド等）
-├── assets/            # アイコンなどの静的アセット
-├── .github/           # CI/CD と Issue テンプレート
-├── .cursor/           # Cursor AI エディタのルール設定
-├── .gitattributes     # 改行コード統一設定 (LF)
-└── deno.jsonc         # Deno設定（CHANGELOG.md除外含む）
+slack-utils-channel/
+├── functions/
+│   ├── create_private_channel/  # チャンネル作成関数
+│   ├── request_private_channel/ # 承認ワークフロー用関数
+│   ├── get_channel_members/     # メンバー取得関数
+│   └── example_function/        # サンプル関数
+├── workflows/
+│   ├── create_channel_workflow.ts          # チャンネル作成ワークフロー
+│   ├── request_private_channel_workflow.ts # 承認ワークフロー
+│   ├── get_members_workflow.ts             # メンバー取得ワークフロー
+│   └── example_workflow.ts                 # サンプルワークフロー
+├── triggers/
+│   ├── create_channel_trigger.ts           # チャンネル作成トリガー
+│   ├── request_private_channel_trigger.ts  # 承認リクエストトリガー
+│   ├── get_members_trigger.ts              # メンバー取得トリガー
+│   └── example_trigger.ts                  # サンプルトリガー
+├── lib/
+│   ├── i18n/           # 多言語対応
+│   └── validation/     # Zodバリデーションスキーマ
+├── locales/            # 言語ファイル（en.json, ja.json）
+├── docs/               # ドキュメント
+├── assets/             # アイコンなどの静的アセット
+├── .github/            # CI/CD と Issue テンプレート
+├── .cursor/            # Cursor AI エディタのルール設定
+├── manifest.ts         # Slackアプリマニフェスト
+└── deno.jsonc          # Deno設定
 ```
 
 ## 開発時の注意事項
