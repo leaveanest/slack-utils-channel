@@ -9,14 +9,30 @@ import { z } from "zod";
 
 export const CreatePrivateChannelDefinition = DefineFunction({
   callback_id: "create_private_channel",
-  title: "Create Private Channel",
-  description: "Create a new private channel with optional initial members",
+  title: "Create Channel",
+  description:
+    "Create a new channel (public or private) with optional initial members",
   source_file: "functions/create_private_channel/mod.ts",
   input_parameters: {
     properties: {
       channel_name: {
         type: Schema.types.string,
         description: "Name of the channel to create (without #)",
+      },
+      creator_id: {
+        type: Schema.slack.types.user_id,
+        description:
+          "User ID of the channel creator (required for workspace apps)",
+      },
+      notification_channel_id: {
+        type: Schema.slack.types.channel_id,
+        description:
+          "Channel ID where shortcut was triggered (used to get workspace team_id)",
+      },
+      is_private: {
+        type: Schema.types.boolean,
+        description: "Whether to create a private channel (default: true)",
+        default: true,
       },
       description: {
         type: Schema.types.string,
@@ -30,7 +46,7 @@ export const CreatePrivateChannelDefinition = DefineFunction({
         description: "User IDs to invite to the channel (optional)",
       },
     },
-    required: ["channel_name"],
+    required: ["channel_name", "creator_id", "notification_channel_id"],
   },
   output_parameters: {
     properties: {
@@ -87,13 +103,17 @@ export function normalizeChannelName(name: string): string {
 }
 
 /**
- * プライベートチャンネルを作成し、初期メンバーを招待します
+ * チャンネルを作成し、初期メンバーを招待します
  *
  * チャンネル名の正規化（小文字化、スペースをハイフンに変換）を自動的に実行します。
  * 初期メンバーが指定された場合、チャンネル作成後に招待を実行します。
+ * Enterprise Grid環境では、notificationChannelIdからワークスペースのteam_idを取得します。
  *
  * @param client - Slack APIクライアント
  * @param channelName - チャンネル名（#なし、自動で正規化される）
+ * @param creatorId - チャンネル作成者のユーザーID（ワークスペースアプリでは必須）
+ * @param notificationChannelId - 通知先チャンネルID（workspace team_idを取得するために使用）
+ * @param isPrivate - プライベートチャンネルとして作成するか（デフォルト: true）
  * @param description - チャンネルの説明（オプション）
  * @param initialMembers - 初期メンバーのユーザーIDリスト（オプション）
  * @returns 作成されたチャンネルの情報
@@ -101,18 +121,24 @@ export function normalizeChannelName(name: string): string {
  *
  * @example
  * ```typescript
- * const result = await createPrivateChannel(
+ * const result = await createChannel(
  *   client,
  *   "project-alpha",
+ *   "U12345",
+ *   "C12345",
+ *   true, // private channel
  *   "Alpha project private discussion",
- *   ["U12345", "U67890"]
+ *   ["U67890", "U11111"]
  * );
  * console.log(`チャンネル作成: ${result.channel_name} (${result.channel_id})`);
  * ```
  */
-export async function createPrivateChannel(
+export async function createChannel(
   client: SlackAPIClient,
   channelName: string,
+  creatorId: string,
+  notificationChannelId: string,
+  isPrivate: boolean = true,
   description?: string,
   initialMembers?: string[],
 ): Promise<CreateChannelResult> {
@@ -125,13 +151,60 @@ export async function createPrivateChannel(
 
   console.log(t("logs.creating_channel", { name: normalizedName }));
 
-  // 1. プライベートチャンネルを作成
-  // Note: Run on Slack does not support team:read scope,
-  // so we cannot use team_id parameter for Enterprise Grid.
-  // This may cause issues in Enterprise Grid environments.
-  const createResponse = await client.conversations.create({
+  // Step 0: conversations.info でワークスペースの team_id を取得
+  console.log("Step 0: Getting workspace team_id from channel:", {
+    channel: notificationChannelId,
+  });
+
+  const channelInfoResponse = await client.conversations.info({
+    channel: notificationChannelId,
+  });
+
+  if (!channelInfoResponse.ok || !channelInfoResponse.channel) {
+    const error = channelInfoResponse.error ?? t("errors.unknown_error");
+    throw new Error(t("errors.channel_info_failed", { error }));
+  }
+
+  // context_team_id がワークスペースの team_id (Tで始まる)
+  // deno-lint-ignore no-explicit-any
+  const workspaceTeamId = (channelInfoResponse.channel as any)
+    .context_team_id as string;
+
+  console.log("Retrieved workspace team_id:", {
+    context_team_id: workspaceTeamId,
+  });
+
+  if (!workspaceTeamId) {
+    throw new Error(t("errors.missing_team_id"));
+  }
+
+  // Step 1: チャンネルを作成（Enterprise Gridではteam_id、プライベートチャンネルではuser_idsが必須）
+  const channelType = isPrivate ? "private" : "public";
+  console.log(`Step 1: Creating ${channelType} channel:`, {
     name: normalizedName,
-    is_private: true,
+    is_private: isPrivate,
+    user_ids: isPrivate ? creatorId : undefined,
+    team_id: workspaceTeamId,
+  });
+
+  // deno-lint-ignore no-explicit-any
+  const createParams: any = {
+    name: normalizedName,
+    is_private: isPrivate,
+    team_id: workspaceTeamId, // Enterprise Gridでは必須（conversations.infoから取得）
+  };
+
+  // プライベートチャンネルの場合のみuser_idsが必須
+  if (isPrivate) {
+    createParams.user_ids = creatorId;
+  }
+
+  const createResponse = await client.conversations.create(createParams);
+
+  console.log("conversations.create response:", {
+    ok: createResponse.ok,
+    error: createResponse.error,
+    has_channel: !!createResponse.channel,
   });
 
   if (!createResponse.ok || !createResponse.channel) {
@@ -140,11 +213,16 @@ export async function createPrivateChannel(
   }
 
   const channelId = createResponse.channel.id as string;
-  console.log(t("logs.channel_created_private", { id: channelId }));
+  console.log(
+    `${
+      channelType.charAt(0).toUpperCase() + channelType.slice(1)
+    } channel created with ID:`,
+    channelId,
+  );
 
-  let memberCount = 1; // Bot自身
+  let memberCount = 1; // 作成者自身
 
-  // 2. 説明（トピック）を設定（オプション）
+  // 3. 説明（トピック）を設定（オプション）
   if (description && description.trim().length > 0) {
     const topicResponse = await client.conversations.setTopic({
       channel: channelId,
@@ -191,8 +269,17 @@ export default SlackFunction(
     try {
       // Zodバリデーション
       const channelName = nonEmptyStringSchema.parse(inputs.channel_name);
+      const creatorId = userIdSchema.parse(inputs.creator_id);
+      const notificationChannelId = inputs.notification_channel_id as string;
+
+      // notification_channel_idの検証
+      if (!notificationChannelId) {
+        throw new Error(t("errors.missing_notification_channel"));
+      }
 
       // オプショナルパラメータの処理
+      // is_private: デフォルトはtrue（プライベートチャンネル）
+      const isPrivate = inputs.is_private !== false;
       const description = inputs.description as string | undefined;
       const initialMembers = inputs.initial_members as string[] | undefined;
 
@@ -202,9 +289,12 @@ export default SlackFunction(
         membersSchema.parse(initialMembers);
       }
 
-      const result = await createPrivateChannel(
+      const result = await createChannel(
         client,
         channelName,
+        creatorId,
+        notificationChannelId,
+        isPrivate,
         description,
         initialMembers,
       );

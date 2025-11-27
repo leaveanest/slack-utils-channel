@@ -1,6 +1,7 @@
 import { Manifest } from "deno-slack-sdk/mod.ts";
 import { ExampleFunctionDefinition } from "./functions/example_function/mod.ts";
 import { GetChannelMembersDefinition } from "./functions/get_channel_members/mod.ts";
+import { CreatePrivateChannelDefinition } from "./functions/create_private_channel/mod.ts";
 import CreateChannelWorkflow from "./workflows/create_channel_workflow.ts";
 import ExampleWorkflow from "./workflows/example_workflow.ts";
 import GetMembersWorkflow from "./workflows/get_members_workflow.ts";
@@ -22,6 +23,7 @@ export default Manifest({
   functions: [
     ExampleFunctionDefinition,
     GetChannelMembersDefinition,
+    CreatePrivateChannelDefinition,
   ],
   outgoingDomains: [],
   botScopes: [

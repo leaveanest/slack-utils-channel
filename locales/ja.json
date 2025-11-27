@@ -14,6 +14,9 @@
     "invalid_channel_name": "無効なチャンネル名です: {name}",
     "member_invite_failed": "メンバーの招待に失敗しました: {error}",
     "channel_topic_set_failed": "チャンネルトピックの設定に失敗しました: {error}",
+    "missing_team_id": "Enterprise Grid環境ではチームIDが必要です",
+    "channel_info_failed": "チャンネル情報の取得に失敗しました: {error}",
+    "missing_notification_channel": "通知チャンネルIDが必要です",
     "validation": {
       "channel_id_empty": "チャンネルIDを空にすることはできません",
       "channel_id_format": "チャンネルIDは 'C' で始まり、大文字の英数字が続く必要があります",
