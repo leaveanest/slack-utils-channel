@@ -18,6 +18,7 @@
     "channel_info_failed": "Failed to get channel info: {error}",
     "missing_notification_channel": "Notification channel ID is required",
     "missing_admin_token": "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
+    "fetch_authorized_users_failed": "Failed to fetch authorized users: {error}",
     "not_authorized_approver": "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
     "validation": {
       "channel_id_empty": "Channel ID cannot be empty",
@@ -62,6 +63,8 @@
     "sending_approval_request": "Sending approval request for channel '{channel}' to approver '{approver}'",
     "approval_request_sent": "Approval request sent successfully",
     "creating_channel_after_approval": "Creating channel '{name}' after approval",
-    "members_invited": "{count} members invited to the channel"
+    "members_invited": "{count} members invited to the channel",
+    "fetching_authorized_users": "Fetching authorized users for team: {teamId}",
+    "authorized_users_fetched": "Found {count} authorized users (admins/owners)"
   }
 }
