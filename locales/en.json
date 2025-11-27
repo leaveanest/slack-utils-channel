@@ -14,6 +14,10 @@
     "invalid_channel_name": "Invalid channel name: {name}",
     "member_invite_failed": "Failed to invite members: {error}",
     "channel_topic_set_failed": "Failed to set channel topic: {error}",
+    "missing_team_id": "Team ID is required for Enterprise Grid environments",
+    "channel_info_failed": "Failed to get channel info: {error}",
+    "missing_notification_channel": "Notification channel ID is required",
+    "missing_admin_token": "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
     "validation": {
       "channel_id_empty": "Channel ID cannot be empty",
       "channel_id_format": "Channel ID must start with 'C' followed by uppercase alphanumeric characters",
@@ -29,7 +33,20 @@
     "success": "Operation completed successfully",
     "processing": "Processing request...",
     "channel_created": "Channel '{name}' created successfully",
-    "members_invited": "{count} members invited to the channel"
+    "members_invited": "{count} members invited to the channel",
+    "no_initial_members": "None",
+    "no_description": "No description",
+    "approval_request_title": "📋 Private Channel Request: #{channel}",
+    "approval_request_header": "🔒 Private Channel Creation Request",
+    "approval_request_details": "*Requester:* <@{requester}>\n*Channel Name:* `#{channel}`\n*Description:* {description}\n*Initial Members:* {members}",
+    "approve_button": "✅ Approve",
+    "deny_button": "❌ Deny",
+    "approval_context": "👤 Approval required from <@{approver}>",
+    "channel_approved": "✅ *Private channel approved and created!*\n\n*Channel:* <#{channel_id}|{channel}>\n*Approved by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
+    "channel_denied": "❌ *Private channel request denied*\n\n*Channel:* `#{channel}`\n*Denied by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
+    "channel_creation_failed": "⚠️ *Failed to create private channel*\n\n*Channel:* `#{channel}`\n*Error:* {error}",
+    "approved_at": "Approved at {time}",
+    "denied_at": "Denied at {time}"
   },
   "logs": {
     "starting": "Starting workflow...",
@@ -39,6 +56,11 @@
     "fetching_members": "Fetching members for channel {channelId}...",
     "creating_channel": "Creating private channel: {name}",
     "channel_created_private": "Private channel created with ID: {id}",
-    "inviting_members": "Inviting {count} members..."
+    "inviting_members": "Inviting {count} members...",
+    "creating_channel_admin_api": "Creating private channel via Admin API: {name}",
+    "sending_approval_request": "Sending approval request for channel '{channel}' to approver '{approver}'",
+    "approval_request_sent": "Approval request sent successfully",
+    "creating_channel_after_approval": "Creating channel '{name}' after approval",
+    "members_invited": "{count} members invited to the channel"
   }
 }

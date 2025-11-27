@@ -75,14 +75,17 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       api_error: "APIリクエストに失敗しました: {message}",
       api_call_failed: "API呼び出しに失敗しました: {error}",
       data_not_found: "必要なデータが見つかりません",
-      invalid_type: "無効なタイプ: 期待されるのは {expected} で、取得されたのは {actual} です",
+      invalid_type:
+        "無効なタイプ: 期待されるのは {expected} で、取得されたのは {actual} です",
       empty_value: "値を空にすることはできません",
       invalid_format: "{field} の形式が無効です: 期待されるのは {pattern} です",
-      channel_members_fetch_failed: "チャンネルメンバーの取得に失敗しました: {error}",
+      channel_members_fetch_failed:
+        "チャンネルメンバーの取得に失敗しました: {error}",
       channel_create_failed: "チャンネルの作成に失敗しました: {error}",
       invalid_channel_name: "無効なチャンネル名です: {name}",
       member_invite_failed: "メンバーの招待に失敗しました: {error}",
-      channel_topic_set_failed: "チャンネルトピックの設定に失敗しました: {error}",
+      channel_topic_set_failed:
+        "チャンネルトピックの設定に失敗しました: {error}",
       validation: {
         channel_id_empty: "チャンネルIDを空にすることはできません",
         channel_id_format:
@@ -109,7 +112,8 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       channel_loaded: "チャンネル {name} が正常に読み込まれました",
       fetching_members: "チャンネル {channelId} のメンバーを取得中...",
       creating_channel: "プライベートチャンネルを作成中: {name}",
-      channel_created_private: "プライベートチャンネルを作成しました（ID: {id}）",
+      channel_created_private:
+        "プライベートチャンネルを作成しました（ID: {id}）",
       inviting_members: "{count} 人のメンバーを招待中...",
     },
   },
@@ -158,9 +162,15 @@ export async function loadLocale(lang: string): Promise<LocaleData> {
       return await loadLocale("en");
     }
 
-    // If even English fails, this should not happen since we have embedded data
-    console.error(`Failed to load English locale:`, error);
-    throw new Error(`Failed to load English locale: ${error}`);
+    // If even English fails (e.g., in production environment with restricted file access),
+    // return the embedded English data
+    console.warn(
+      `Failed to load English locale file, using embedded data:`,
+      error,
+    );
+    const embeddedData = EMBEDDED_LOCALES[lang] || EMBEDDED_LOCALES.en;
+    localeCache.set(lang, embeddedData);
+    return embeddedData;
   }
 }
 

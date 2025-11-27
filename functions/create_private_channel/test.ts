@@ -1,7 +1,11 @@
 import { assertEquals, assertRejects } from "std/testing/asserts.ts";
 import type { SlackAPIClient } from "deno-slack-sdk/types.ts";
-import { createPrivateChannel, normalizeChannelName } from "./mod.ts";
+import { createChannel, normalizeChannelName } from "./mod.ts";
 // i18n is auto-initialized when imported
+
+type ConversationsInfo = SlackAPIClient["conversations"]["info"];
+type ConversationsInfoArgs = Parameters<ConversationsInfo>[0];
+type ConversationsInfoResult = Awaited<ReturnType<ConversationsInfo>>;
 
 type ConversationsCreate = SlackAPIClient["conversations"]["create"];
 type ConversationsCreateArgs = Parameters<ConversationsCreate>[0];
@@ -14,6 +18,29 @@ type ConversationsSetTopicResult = Awaited<ReturnType<ConversationsSetTopic>>;
 type ConversationsInvite = SlackAPIClient["conversations"]["invite"];
 type ConversationsInviteArgs = Parameters<ConversationsInvite>[0];
 type ConversationsInviteResult = Awaited<ReturnType<ConversationsInvite>>;
+
+// Mock notification channel ID for testing
+const MOCK_NOTIFICATION_CHANNEL_ID = "C09876NOTIFY";
+// Mock workspace team ID (starts with T)
+const MOCK_WORKSPACE_TEAM_ID = "T080TCW9CJ2";
+
+/**
+ * conversations.info のモックレスポンスを作成
+ */
+function createConversationsInfoMock() {
+  return function (
+    args: ConversationsInfoArgs,
+  ): Promise<ConversationsInfoResult> {
+    assertEquals(args!.channel, MOCK_NOTIFICATION_CHANNEL_ID);
+    return Promise.resolve({
+      ok: true,
+      channel: {
+        id: MOCK_NOTIFICATION_CHANNEL_ID,
+        context_team_id: MOCK_WORKSPACE_TEAM_ID,
+      },
+    } as unknown as ConversationsInfoResult);
+  };
+}
 
 Deno.test({
   name: "normalizeChannelName: チャンネル名を正しく正規化する",
@@ -30,17 +57,20 @@ Deno.test({
 });
 
 Deno.test({
-  name: "正常にチャンネルのみ作成できる",
+  name: "正常にプライベートチャンネルのみ作成できる",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
     const mockClient = {
       conversations: {
+        info: createConversationsInfoMock(),
         create(
           args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
           assertEquals(args!.name, "test-channel");
-          assertEquals(args!.is_private, true);
+          assertEquals(args!.is_private, true); // プライベートチャンネル作成
+          assertEquals(args!.user_ids, "U0812GLUZD2"); // creator_idが渡される
+          assertEquals(args!.team_id, MOCK_WORKSPACE_TEAM_ID); // conversations.infoから取得したteam_id
           return Promise.resolve({
             ok: true,
             channel: {
@@ -52,14 +82,57 @@ Deno.test({
       },
     } as unknown as SlackAPIClient;
 
-    const result = await createPrivateChannel(
+    const result = await createChannel(
       mockClient,
       "Test Channel",
+      "U0812GLUZD2", // creator_id
+      MOCK_NOTIFICATION_CHANNEL_ID, // notification_channel_id
+      true, // is_private
     );
 
     assertEquals(result.channel_id, "C12345");
     assertEquals(result.channel_name, "test-channel");
     assertEquals(result.member_count, 1); // Bot自身のみ
+  },
+});
+
+Deno.test({
+  name: "正常にパブリックチャンネルを作成できる",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const mockClient = {
+      conversations: {
+        info: createConversationsInfoMock(),
+        create(
+          args: ConversationsCreateArgs,
+        ): Promise<ConversationsCreateResult> {
+          assertEquals(args!.name, "public-channel");
+          assertEquals(args!.is_private, false); // パブリックチャンネル作成
+          assertEquals(args!.user_ids, undefined); // パブリックではuser_idsは不要
+          assertEquals(args!.team_id, MOCK_WORKSPACE_TEAM_ID);
+          return Promise.resolve({
+            ok: true,
+            channel: {
+              id: "C67890",
+              name: "public-channel",
+            },
+          } as unknown as ConversationsCreateResult);
+        },
+      },
+    } as unknown as SlackAPIClient;
+
+    const result = await createChannel(
+      mockClient,
+      "Public Channel",
+      "U0812GLUZD2", // creator_id
+      MOCK_NOTIFICATION_CHANNEL_ID, // notification_channel_id
+      false, // is_private = false (public)
+    );
+
+    assertEquals(result.channel_id, "C67890");
+    assertEquals(result.channel_name, "public-channel");
+    assertEquals(result.member_count, 1);
   },
 });
 
@@ -70,6 +143,7 @@ Deno.test({
   fn: async () => {
     const mockClient = {
       conversations: {
+        info: createConversationsInfoMock(),
         create(
           _args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
@@ -93,9 +167,12 @@ Deno.test({
       },
     } as unknown as SlackAPIClient;
 
-    const result = await createPrivateChannel(
+    const result = await createChannel(
       mockClient,
       "Test Channel",
+      "U0812GLUZD2", // creator_id
+      MOCK_NOTIFICATION_CHANNEL_ID, // notification_channel_id
+      true, // is_private
       "Test description",
     );
 
@@ -112,6 +189,7 @@ Deno.test({
   fn: async () => {
     const mockClient = {
       conversations: {
+        info: createConversationsInfoMock(),
         create(
           _args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
@@ -135,9 +213,12 @@ Deno.test({
       },
     } as unknown as SlackAPIClient;
 
-    const result = await createPrivateChannel(
+    const result = await createChannel(
       mockClient,
       "Test Channel",
+      "U0812GLUZD2", // creator_id
+      MOCK_NOTIFICATION_CHANNEL_ID, // notification_channel_id
+      true, // is_private
       undefined,
       ["U12345", "U67890"],
     );
@@ -155,6 +236,7 @@ Deno.test({
   fn: async () => {
     const mockClient = {
       conversations: {
+        info: createConversationsInfoMock(),
         create(
           _args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
@@ -187,9 +269,12 @@ Deno.test({
       },
     } as unknown as SlackAPIClient;
 
-    const result = await createPrivateChannel(
+    const result = await createChannel(
       mockClient,
       "Project Alpha",
+      "U0812GLUZD2", // creator_id
+      MOCK_NOTIFICATION_CHANNEL_ID, // notification_channel_id
+      true, // is_private
       "Alpha project discussion",
       ["U11111", "U22222", "U33333"],
     );
@@ -207,6 +292,7 @@ Deno.test({
   fn: async () => {
     const mockClient = {
       conversations: {
+        info: createConversationsInfoMock(),
         create(
           _args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
@@ -222,7 +308,14 @@ Deno.test({
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const error = await assertRejects(
-      () => createPrivateChannel(mockClient, "existing-channel"),
+      () =>
+        createChannel(
+          mockClient,
+          "existing-channel",
+          "U0812GLUZD2",
+          MOCK_NOTIFICATION_CHANNEL_ID,
+          true, // is_private
+        ),
       Error,
     );
 
@@ -235,13 +328,24 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
-    const mockClient = {} as unknown as SlackAPIClient;
+    const mockClient = {
+      conversations: {
+        info: createConversationsInfoMock(),
+      },
+    } as unknown as SlackAPIClient;
 
     // Wait a bit for i18n to initialize
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const error = await assertRejects(
-      () => createPrivateChannel(mockClient, "!!!"),
+      () =>
+        createChannel(
+          mockClient,
+          "!!!",
+          "U0812GLUZD2",
+          MOCK_NOTIFICATION_CHANNEL_ID,
+          true, // is_private
+        ),
       Error,
     );
 
@@ -257,6 +361,7 @@ Deno.test({
   fn: async () => {
     const mockClient = {
       conversations: {
+        info: createConversationsInfoMock(),
         create(
           _args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
@@ -280,9 +385,12 @@ Deno.test({
     } as unknown as SlackAPIClient;
 
     // トピック設定失敗でもチャンネル作成は成功する
-    const result = await createPrivateChannel(
+    const result = await createChannel(
       mockClient,
       "Test Channel",
+      "U0812GLUZD2", // creator_id
+      MOCK_NOTIFICATION_CHANNEL_ID, // notification_channel_id
+      true, // is_private
       "Very long description that might fail",
     );
 
@@ -298,6 +406,7 @@ Deno.test({
   fn: async () => {
     const mockClient = {
       conversations: {
+        info: createConversationsInfoMock(),
         create(
           _args: ConversationsCreateArgs,
         ): Promise<ConversationsCreateResult> {
@@ -321,9 +430,12 @@ Deno.test({
     } as unknown as SlackAPIClient;
 
     // メンバー招待失敗でもチャンネル作成は成功する
-    const result = await createPrivateChannel(
+    const result = await createChannel(
       mockClient,
       "Test Channel",
+      "U0812GLUZD2", // creator_id
+      MOCK_NOTIFICATION_CHANNEL_ID, // notification_channel_id
+      true, // is_private
       undefined,
       ["U99999"], // 存在しないユーザー
     );
@@ -331,5 +443,46 @@ Deno.test({
     assertEquals(result.channel_id, "C12345");
     assertEquals(result.channel_name, "test-channel");
     assertEquals(result.member_count, 1); // Botのみ（招待失敗）
+  },
+});
+
+Deno.test({
+  name: "conversations.info エラー時には例外を投げる",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const mockClient = {
+      conversations: {
+        info(
+          _args: ConversationsInfoArgs,
+        ): Promise<ConversationsInfoResult> {
+          return Promise.resolve({
+            ok: false,
+            error: "channel_not_found",
+          } as unknown as ConversationsInfoResult);
+        },
+      },
+    } as unknown as SlackAPIClient;
+
+    // Wait a bit for i18n to initialize
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const error = await assertRejects(
+      () =>
+        createChannel(
+          mockClient,
+          "test-channel",
+          "U0812GLUZD2",
+          MOCK_NOTIFICATION_CHANNEL_ID,
+          true, // is_private
+        ),
+      Error,
+    );
+
+    // エラーメッセージに channel_not_found または channel_info_failed が含まれることを確認
+    const hasExpectedError = error.message.includes("channel_not_found") ||
+      error.message.includes("channel_info_failed") ||
+      error.message.includes("Failed to get channel info");
+    assertEquals(hasExpectedError, true);
   },
 });
