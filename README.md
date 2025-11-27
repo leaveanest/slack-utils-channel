@@ -6,8 +6,10 @@ Slackチャンネル管理のためのワークフローアプリケーション
 
 - Slackチャンネルの作成・管理を自動化するワークフローを提供します
 - **管理者承認によるプライベートチャンネル作成機能**を搭載
-- Enterprise Grid環境でも、ワークスペースの権限設定に関係なくプライベートチャンネルを作成可能
-- Slack Deno SDK v2.0.0 を利用し、関数・ワークフロー・トリガーを一貫して管理します
+- Enterprise
+  Grid環境でも、ワークスペースの権限設定に関係なくプライベートチャンネルを作成可能
+- Slack Deno SDK v2.0.0
+  を利用し、関数・ワークフロー・トリガーを一貫して管理します
 
 ## 主な機能
 
@@ -17,6 +19,7 @@ Slackチャンネル管理のためのワークフローアプリケーション
 管理者の承認を経てプライベートチャンネルを作成できます。
 
 **処理フロー：**
+
 ```
 ユーザー → フォーム入力 → 管理者にリクエスト送信
                               ↓
@@ -29,6 +32,7 @@ Slackチャンネル管理のためのワークフローアプリケーション
 ### 📢 パブリック/プライベートチャンネル作成
 
 通常の `conversations.create` API を使用したチャンネル作成も可能です。
+
 - パブリックチャンネル: 誰でも作成可能
 - プライベートチャンネル: ワークスペースの権限設定に依存
 
@@ -42,7 +46,8 @@ Slackチャンネル管理のためのワークフローアプリケーション
 - **Slack CLI** が利用可能で、ワークスペースにログイン済みであること
 - **Slack App** を作成できる権限を持っていること
 - **Git** がインストールされていること（Git Hooks使用時）
-- **Enterprise Grid環境**（承認ワークフロー使用時）: Org Owner または Org Admin 権限
+- **Enterprise Grid環境**（承認ワークフロー使用時）: Org Owner または Org Admin
+  権限
 
 詳細は [開発環境のセットアップ](#開発環境のセットアップ) を参照してください。
 
@@ -83,8 +88,8 @@ SLACK_ADMIN_USER_TOKEN=xoxp-xxxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxxxx
 
 #### Admin User Token の取得方法（承認ワークフロー用）
 
-プライベートチャンネルの承認ワークフローを使用するには、`admin.conversations:write` スコープを持つ
-User OAuth Token が必要です。
+プライベートチャンネルの承認ワークフローを使用するには、`admin.conversations:write`
+スコープを持つ User OAuth Token が必要です。
 
 **Step 1: 従来型 Slack App を作成**
 
@@ -110,7 +115,8 @@ User OAuth Token が必要です。
    SLACK_ADMIN_USER_TOKEN=xoxp-your-token-here
    ```
 
-**注意:** このトークンは Org Owner または Org Admin 権限を持つユーザーでインストールする必要があります。
+**注意:** このトークンは Org Owner または Org Admin
+権限を持つユーザーでインストールする必要があります。
 
 #### Team ID の取得方法
 
@@ -185,12 +191,12 @@ slack run
 
 ### 利用可能なワークフロー
 
-| ワークフロー | トリガー | 説明 |
-|-------------|---------|------|
-| `CreateChannelWorkflow` | `create_channel_trigger.ts` | パブリック/プライベートチャンネルを作成 |
-| `RequestPrivateChannelWorkflow` | `request_private_channel_trigger.ts` | 承認を経てプライベートチャンネルを作成 |
-| `GetMembersWorkflow` | `get_members_trigger.ts` | チャンネルメンバー一覧を取得 |
-| `ExampleWorkflow` | `example_trigger.ts` | サンプルワークフロー |
+| ワークフロー                    | トリガー                             | 説明                                    |
+| ------------------------------- | ------------------------------------ | --------------------------------------- |
+| `CreateChannelWorkflow`         | `create_channel_trigger.ts`          | パブリック/プライベートチャンネルを作成 |
+| `RequestPrivateChannelWorkflow` | `request_private_channel_trigger.ts` | 承認を経てプライベートチャンネルを作成  |
+| `GetMembersWorkflow`            | `get_members_trigger.ts`             | チャンネルメンバー一覧を取得            |
+| `ExampleWorkflow`               | `example_trigger.ts`                 | サンプルワークフロー                    |
 
 ### トリガーの登録
 
