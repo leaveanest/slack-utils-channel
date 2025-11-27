@@ -19,6 +19,7 @@
     "missing_notification_channel": "通知チャネルIDが必要です",
     "missing_admin_token": "管理者ユーザートークン(SLACK_ADMIN_USER_TOKEN)が設定されていません",
     "not_authorized_approver": "⚠️ このリクエストを承認する権限がありません。<@{approver}>のみが承認または却下できます。",
+    "users_list_failed": "ユーザーリストの取得に失敗しました: {error}",
     "validation": {
       "channel_id_empty": "チャネルIDを空にすることはできません",
       "channel_id_format": "チャネルIDは'C'で始まり、その後に大文字の英数字が続く必要があります",
@@ -62,6 +63,10 @@
     "sending_approval_request": "チャネル'{channel}'の承認リクエストを承認者'{approver}'に送信中です",
     "approval_request_sent": "承認リクエストが正常に送信されました",
     "creating_channel_after_approval": "承認後、チャネル'{name}'を作成中です",
-    "members_invited": "{count}人のメンバーがチャネルに招待されました"
+    "members_invited": "{count}人のメンバーがチャネルに招待されました",
+    "fetching_workspace_users": "チーム{teamId}のワークスペースユーザーを取得中です",
+    "users_fetched": "ワークスペースから{count}人のユーザーを取得しました",
+    "filtering_users_with_permission": "チーム{teamId}のプライベートチャネル作成権限を持つユーザーをフィルタリング中です",
+    "users_filtered": "合計{total}人のユーザーから{filtered}人の権限を持つユーザーをフィルタリングしました"
   }
 }

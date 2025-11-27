@@ -3,6 +3,7 @@ import { ExampleFunctionDefinition } from "./functions/example_function/mod.ts";
 import { GetChannelMembersDefinition } from "./functions/get_channel_members/mod.ts";
 import { CreatePrivateChannelDefinition } from "./functions/create_private_channel/mod.ts";
 import { RequestPrivateChannelDefinition } from "./functions/request_private_channel/mod.ts";
+import { FilterUsersPrivateChannelPermissionDefinition } from "./functions/filter_users_private_channel_permission/mod.ts";
 import CreateChannelWorkflow from "./workflows/create_channel_workflow.ts";
 import RequestPrivateChannelWorkflow from "./workflows/request_private_channel_workflow.ts";
 import ExampleWorkflow from "./workflows/example_workflow.ts";
@@ -28,6 +29,7 @@ export default Manifest({
     GetChannelMembersDefinition,
     CreatePrivateChannelDefinition,
     RequestPrivateChannelDefinition,
+    FilterUsersPrivateChannelPermissionDefinition,
   ],
   outgoingDomains: [], // slack.com はデフォルトで許可済み
   botScopes: [

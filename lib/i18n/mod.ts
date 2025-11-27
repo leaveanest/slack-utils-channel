@@ -44,6 +44,7 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
         "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
       not_authorized_approver:
         "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
+      users_list_failed: "Failed to fetch users list: {error}",
       validation: {
         channel_id_empty: "Channel ID cannot be empty",
         channel_id_format:
@@ -97,6 +98,12 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       creating_channel_after_approval:
         "Creating channel '{name}' after approval",
       members_invited: "{count} members invited to the channel",
+      fetching_workspace_users: "Fetching workspace users for team: {teamId}",
+      users_fetched: "Fetched {count} users from workspace",
+      filtering_users_with_permission:
+        "Filtering users with private channel permission for team: {teamId}",
+      users_filtered:
+        "Filtered {filtered} users with permission out of {total} total users",
     },
   },
   ja: {
@@ -125,6 +132,7 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
         "管理者ユーザートークン（SLACK_ADMIN_USER_TOKEN）が設定されていません",
       not_authorized_approver:
         "⚠️ このリクエストを承認する権限がありません。<@{approver}> のみが承認または拒否できます。",
+      users_list_failed: "ユーザーリストの取得に失敗しました: {error}",
       validation: {
         channel_id_empty: "チャンネルIDを空にすることはできません",
         channel_id_format:
@@ -179,6 +187,13 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       approval_request_sent: "承認リクエストを送信しました",
       creating_channel_after_approval: "承認後にチャンネル '{name}' を作成中",
       members_invited: "{count} 人のメンバーを招待しました",
+      fetching_workspace_users:
+        "チーム {teamId} のワークスペースユーザーを取得中",
+      users_fetched: "ワークスペースから {count} 人のユーザーを取得しました",
+      filtering_users_with_permission:
+        "チーム {teamId} のプライベートチャンネル作成権限を持つユーザーをフィルタリング中",
+      users_filtered:
+        "合計 {total} 人のユーザーから {filtered} 人の権限を持つユーザーをフィルタリングしました",
     },
   },
 };
