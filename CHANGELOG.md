@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.0.0 (2025-11-27)
+
+
+### Features
+
+* add approver validation and enhance member invitation process ([c4999a4](https://github.com/leaveanest/slack-utils-channel/commit/c4999a43f9ddb3d496dbee104990c71610ebe3f5))
+* add Slack channel operation functions ([5cdea05](https://github.com/leaveanest/slack-utils-channel/commit/5cdea05be1be07b01a664a58189bde53e2e30874))
+* add SLACK_TEAM_ID environment variable support for Enterprise Grid ([c3f8013](https://github.com/leaveanest/slack-utils-channel/commit/c3f801323763097ddffa4e6ec97011d84aad94ed))
+* add workflows and triggers for channel operations ([c11acf3](https://github.com/leaveanest/slack-utils-channel/commit/c11acf3684ab71841bcb2415c1573344ccf9cce3))
+* 管理者承認によるプライベートチャンネル作成機能を追加 ([3aca65e](https://github.com/leaveanest/slack-utils-channel/commit/3aca65e750e5cb52a7b4f229e7f7e764f416fd7f))
+
+
+### Bug Fixes
+
+* add Enterprise Grid support with team_id parameter for channel creation ([c2e965f](https://github.com/leaveanest/slack-utils-channel/commit/c2e965ff1fe3097a2233b552f3dcb5427155aff9))
+* add Japanese translations for new i18n keys ([aeb862c](https://github.com/leaveanest/slack-utils-channel/commit/aeb862c96b6e0c2f02b1402145d9267ca930c8b6))
+* add non-null assertions to test arguments for TypeScript strict mode ([45a7a53](https://github.com/leaveanest/slack-utils-channel/commit/45a7a53e411aaee1261d5e50bcccd3c40f37b8f4))
+* add team_id input for Enterprise Grid compatibility ([dba0ba7](https://github.com/leaveanest/slack-utils-channel/commit/dba0ba7ef40b8f59df5a40bc1ba33389f8641ce9))
+* add team:read and admin.conversations:write scopes for Enterprise Grid support ([39860c2](https://github.com/leaveanest/slack-utils-channel/commit/39860c2ba2c0d6e34c00bfa6b01bec733e5a1d2f))
+* embed i18n messages and remove team_id for Run on Slack compatibility ([d397bba](https://github.com/leaveanest/slack-utils-channel/commit/d397bbac6f676c697a527f65e82f392ea73b5416))
+* prefix unused error variable with underscore for lint compliance ([e68d022](https://github.com/leaveanest/slack-utils-channel/commit/e68d0229d32910f8e5f195a864a6ae99665defbe))
+* remove team_id parameter for Sandbox workspace compatibility ([c718a64](https://github.com/leaveanest/slack-utils-channel/commit/c718a64afa611d48945c2a2637d159e937895209))
+* remove template literal usage in workflow messages for type safety ([5f93782](https://github.com/leaveanest/slack-utils-channel/commit/5f937822b8254280012382eb7053018d895c9266))
+* remove unused variables in workflows to pass lint check ([16974c1](https://github.com/leaveanest/slack-utils-channel/commit/16974c1f6cdf6f461357eb9a513a21528b67505f))
+* remove value property from customizable trigger inputs ([dd5112b](https://github.com/leaveanest/slack-utils-channel/commit/dd5112b06bf085ff9e66b28119b51c5d3062f314))
+* revert to direct private channel creation with team_id ([d4130c8](https://github.com/leaveanest/slack-utils-channel/commit/d4130c840e301188a4b53339ab0826e10365c00d))
+
 ## [1.7.0](https://github.com/leaveanest/slack-utils/compare/v1.6.0...v1.7.0) (2025-10-30)
 
 
