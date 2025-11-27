@@ -5,6 +5,7 @@ import {
   nonEmptyStringSchema,
   userIdSchema,
 } from "../../lib/validation/schemas.ts";
+import { AuthorizedUserType } from "../../lib/types/authorized_user.ts";
 
 // i18nを初期化
 await initI18n();
@@ -49,16 +50,7 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
       authorized_users: {
         type: Schema.types.array,
         items: {
-          type: Schema.types.object,
-          properties: {
-            id: { type: Schema.types.string },
-            name: { type: Schema.types.string },
-            real_name: { type: Schema.types.string },
-            is_admin: { type: Schema.types.boolean },
-            is_owner: { type: Schema.types.boolean },
-            is_primary_owner: { type: Schema.types.boolean },
-          },
-          required: ["id", "name", "real_name"],
+          type: AuthorizedUserType,
         },
         description: "List of users authorized to approve requests",
       },
@@ -341,7 +333,7 @@ export default SlackFunction(
   // モーダル送信時のハンドラー
   .addViewSubmissionHandler(
     ["private_channel_request_modal"],
-    async ({ view, body, client }) => {
+    async ({ view, body: _body, client }) => {
       console.log("=== Modal submitted ===");
 
       // private_metadataから情報を取得
@@ -355,8 +347,8 @@ export default SlackFunction(
         values.channel_name_block?.channel_name_input?.value || "";
       const approverId =
         values.approver_block?.approver_select?.selected_option?.value || "";
-      const description =
-        values.description_block?.description_input?.value || "";
+      const description = values.description_block?.description_input?.value ||
+        "";
       const initialMembers =
         values.initial_members_block?.initial_members_select?.selected_users ||
         [];
@@ -396,7 +388,9 @@ export default SlackFunction(
         // 承認リクエストメッセージを送信
         await client.chat.postMessage({
           channel: approvalChannelId,
-          text: t("messages.approval_request_title", { channel: normalizedName }),
+          text: t("messages.approval_request_title", {
+            channel: normalizedName,
+          }),
           blocks: [
             {
               type: "header",
@@ -628,7 +622,11 @@ export default SlackFunction(
                 elements: [
                   {
                     type: "mrkdwn",
-                    text: `✅ ${t("messages.approved_at", { time: new Date().toISOString() })}`,
+                    text: `✅ ${
+                      t("messages.approved_at", {
+                        time: new Date().toISOString(),
+                      })
+                    }`,
                   },
                 ],
               },
@@ -724,7 +722,9 @@ export default SlackFunction(
               elements: [
                 {
                   type: "mrkdwn",
-                  text: `❌ ${t("messages.denied_at", { time: new Date().toISOString() })}`,
+                  text: `❌ ${
+                    t("messages.denied_at", { time: new Date().toISOString() })
+                  }`,
                 },
               ],
             },

@@ -42,6 +42,11 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       missing_notification_channel: "Notification channel ID is required",
       missing_admin_token:
         "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
+      fetch_authorized_users_failed:
+        "Failed to fetch authorized users: {error}",
+      no_authorized_users:
+        "No authorized users found. Please ensure there are admins or owners in the workspace.",
+      modal_open_failed: "Failed to open the form: {error}",
       not_authorized_approver:
         "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
       validation: {
@@ -80,6 +85,23 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       approved_at: "Approved at {time}",
       denied_at: "Denied at {time}",
     },
+    form: {
+      title: "Request Private Channel",
+      submit_button: "Request",
+      cancel_button: "Cancel",
+      channel_name_label: "Channel Name",
+      channel_name_placeholder: "project-alpha",
+      channel_name_hint:
+        "Name of the private channel (without #). Will be converted to lowercase.",
+      approver_label: "Approver",
+      approver_placeholder: "Select an approver",
+      approver_hint:
+        "Only admins and owners can approve private channel creation.",
+      description_label: "Description",
+      description_placeholder: "What is this channel for?",
+      initial_members_label: "Initial Members",
+      initial_members_placeholder: "Select members to invite",
+    },
     logs: {
       starting: "Starting workflow...",
       completed: "Workflow completed",
@@ -97,6 +119,14 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       creating_channel_after_approval:
         "Creating channel '{name}' after approval",
       members_invited: "{count} members invited to the channel",
+      fetching_authorized_users: "Fetching authorized users for team: {teamId}",
+      authorized_users_fetched:
+        "Found {count} authorized users (admins/owners)",
+      opening_form_with_authorized_users:
+        "Opening form with {count} authorized users",
+      modal_opened: "Modal opened successfully",
+      max_page_limit_reached:
+        "Maximum page limit ({limit}) reached, stopping pagination",
     },
   },
   ja: {
@@ -123,6 +153,11 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       missing_notification_channel: "通知チャンネルIDが必要です",
       missing_admin_token:
         "管理者ユーザートークン（SLACK_ADMIN_USER_TOKEN）が設定されていません",
+      fetch_authorized_users_failed:
+        "認可ユーザーの取得に失敗しました: {error}",
+      no_authorized_users:
+        "認可ユーザーが見つかりません。ワークスペースに管理者またはオーナーがいることを確認してください。",
+      modal_open_failed: "フォームを開くことができませんでした: {error}",
       not_authorized_approver:
         "⚠️ このリクエストを承認する権限がありません。<@{approver}> のみが承認または拒否できます。",
       validation: {
@@ -162,6 +197,23 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       approved_at: "{time} に承認",
       denied_at: "{time} に拒否",
     },
+    form: {
+      title: "プライベートチャンネルをリクエスト",
+      submit_button: "リクエスト",
+      cancel_button: "キャンセル",
+      channel_name_label: "チャンネル名",
+      channel_name_placeholder: "project-alpha",
+      channel_name_hint:
+        "プライベートチャンネルの名前（#なし）。小文字に変換されます。",
+      approver_label: "承認者",
+      approver_placeholder: "承認者を選択してください",
+      approver_hint:
+        "管理者とオーナーのみがプライベートチャンネルの作成を承認できます。",
+      description_label: "説明",
+      description_placeholder: "このチャンネルの目的は？",
+      initial_members_label: "初期メンバー",
+      initial_members_placeholder: "招待するメンバーを選択してください",
+    },
     logs: {
       starting: "ワークフローを開始しています...",
       completed: "ワークフローが完了しました",
@@ -179,6 +231,14 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       approval_request_sent: "承認リクエストを送信しました",
       creating_channel_after_approval: "承認後にチャンネル '{name}' を作成中",
       members_invited: "{count} 人のメンバーを招待しました",
+      fetching_authorized_users: "チーム {teamId} の認可ユーザーを取得中です",
+      authorized_users_fetched:
+        "{count}人の認可ユーザー（管理者/オーナー）が見つかりました",
+      opening_form_with_authorized_users:
+        "{count}人の認可ユーザーでフォームを開いています",
+      modal_opened: "モーダルが正常に開きました",
+      max_page_limit_reached:
+        "最大ページ数（{limit}）に達したため、ページネーションを停止します",
     },
   },
 };

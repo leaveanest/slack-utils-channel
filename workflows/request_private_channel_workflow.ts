@@ -37,18 +37,21 @@ const RequestPrivateChannelWorkflow = DefineWorkflow({
 });
 
 // Step 1: 権限を持つユーザー（管理者/オーナー）を取得
+// interactivityを入力として渡し、出力としてStep 2に引き継ぐ
 const getAuthorizedUsersStep = RequestPrivateChannelWorkflow.addStep(
   GetAuthorizedUsersDefinition,
   {
+    interactivity: RequestPrivateChannelWorkflow.inputs.interactivity,
     channel_id: RequestPrivateChannelWorkflow.inputs.channel_id,
   },
 );
 
 // Step 2: フィルタリングされた承認者リストを使用してフォームを表示
+// interactivityはStep 1の出力から取得
 RequestPrivateChannelWorkflow.addStep(
   ShowPrivateChannelFormDefinition,
   {
-    interactivity: RequestPrivateChannelWorkflow.inputs.interactivity,
+    interactivity: getAuthorizedUsersStep.outputs.interactivity,
     user_id: RequestPrivateChannelWorkflow.inputs.user_id,
     channel_id: RequestPrivateChannelWorkflow.inputs.channel_id,
     authorized_users: getAuthorizedUsersStep.outputs.authorized_users,

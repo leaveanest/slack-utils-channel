@@ -1,6 +1,7 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { initI18n, t } from "../../lib/i18n/mod.ts";
 import { channelIdSchema } from "../../lib/validation/schemas.ts";
+import { AuthorizedUserType } from "../../lib/types/authorized_user.ts";
 
 // i18nを初期化
 await initI18n();
@@ -24,13 +25,15 @@ interface AdminUsersListResponse {
   ok: boolean;
   users?: Array<{
     id: string;
-    name?: string;
-    real_name?: string;
+    username?: string;
+    full_name?: string;
+    email?: string;
     is_admin?: boolean;
     is_owner?: boolean;
     is_primary_owner?: boolean;
     is_bot?: boolean;
     deleted?: boolean;
+    is_active?: boolean;
     is_restricted?: boolean;
     is_ultra_restricted?: boolean;
   }>;
@@ -54,29 +57,28 @@ export const GetAuthorizedUsersDefinition = DefineFunction({
   source_file: "functions/get_authorized_users/mod.ts",
   input_parameters: {
     properties: {
+      interactivity: {
+        type: Schema.slack.types.interactivity,
+        description: "Interactivity context (passed through to output)",
+      },
       channel_id: {
         type: Schema.slack.types.channel_id,
         description:
           "Channel ID to get workspace team_id (for Enterprise Grid)",
       },
     },
-    required: ["channel_id"],
+    required: ["interactivity", "channel_id"],
   },
   output_parameters: {
     properties: {
+      interactivity: {
+        type: Schema.slack.types.interactivity,
+        description: "Interactivity context (passed through from input)",
+      },
       authorized_users: {
         type: Schema.types.array,
         items: {
-          type: Schema.types.object,
-          properties: {
-            id: { type: Schema.types.string },
-            name: { type: Schema.types.string },
-            real_name: { type: Schema.types.string },
-            is_admin: { type: Schema.types.boolean },
-            is_owner: { type: Schema.types.boolean },
-            is_primary_owner: { type: Schema.types.boolean },
-          },
-          required: ["id", "name", "real_name", "is_admin", "is_owner"],
+          type: AuthorizedUserType,
         },
         description: "List of users with private channel creation permission",
       },
@@ -90,7 +92,7 @@ export const GetAuthorizedUsersDefinition = DefineFunction({
         description: "Number of authorized users",
       },
     },
-    required: ["authorized_users", "user_ids", "count"],
+    required: ["interactivity", "authorized_users", "user_ids", "count"],
   },
 });
 
@@ -150,7 +152,19 @@ export async function getAuthorizedUsersWithAdminApi(
   const authorizedUsers: AuthorizedUser[] = [];
   let cursor: string | undefined;
 
+  // 無限ループを防ぐための最大ページ数制限
+  const MAX_PAGES = 50;
+  let pageCount = 0;
+
   do {
+    pageCount++;
+    if (pageCount > MAX_PAGES) {
+      console.warn(
+        t("logs.max_page_limit_reached", { limit: MAX_PAGES }),
+      );
+      break;
+    }
+
     const params = new URLSearchParams({
       team_id: teamId,
       limit: "200",
@@ -173,11 +187,15 @@ export async function getAuthorizedUsersWithAdminApi(
 
     const result: AdminUsersListResponse = await response.json();
 
+    // カーソル値をログに出力してデバッグを容易にする
+    const nextCursor = result.response_metadata?.next_cursor;
     console.log("admin.users.list response:", {
       ok: result.ok,
       error: result.error,
       user_count: result.users?.length ?? 0,
-      has_next_cursor: !!result.response_metadata?.next_cursor,
+      has_next_cursor: !!nextCursor,
+      cursor_value: nextCursor ? nextCursor.substring(0, 20) + "..." : "none",
+      page: pageCount,
     });
 
     if (!result.ok) {
@@ -191,16 +209,24 @@ export async function getAuthorizedUsersWithAdminApi(
     if (result.users) {
       for (const user of result.users) {
         // ボット、削除済み、ゲストユーザーを除外
-        if (user.is_bot || user.deleted || user.is_restricted || user.is_ultra_restricted) {
+        if (
+          user.is_bot || user.deleted || user.is_restricted ||
+          user.is_ultra_restricted
+        ) {
           continue;
         }
 
-        // 管理者またはオーナーのみを抽出
+        // 管理者またはオーナーのみを抽出（重複を防ぐ）
         if (user.is_admin || user.is_owner || user.is_primary_owner) {
+          // 既に追加済みのユーザーはスキップ
+          if (authorizedUsers.some((u) => u.id === user.id)) {
+            continue;
+          }
+
           authorizedUsers.push({
             id: user.id,
-            name: user.name ?? "",
-            real_name: user.real_name ?? "",
+            name: user.username ?? "",
+            real_name: user.full_name ?? "",
             is_admin: user.is_admin ?? false,
             is_owner: user.is_owner ?? false,
             is_primary_owner: user.is_primary_owner ?? false,
@@ -209,8 +235,13 @@ export async function getAuthorizedUsersWithAdminApi(
       }
     }
 
-    cursor = result.response_metadata?.next_cursor;
-  } while (cursor);
+    // カーソルチェックの改善: 空文字列、undefined、同じカーソルの場合はループ終了
+    const newCursor = result.response_metadata?.next_cursor;
+    if (!newCursor || newCursor === "" || newCursor === cursor) {
+      break;
+    }
+    cursor = newCursor;
+  } while (true);
 
   console.log(
     t("logs.authorized_users_fetched", { count: authorizedUsers.length }),
@@ -247,6 +278,7 @@ export default SlackFunction(
 
       return {
         outputs: {
+          interactivity: inputs.interactivity,
           authorized_users: authorizedUsers,
           user_ids: userIds,
           count: authorizedUsers.length,

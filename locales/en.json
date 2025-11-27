@@ -84,6 +84,7 @@
     "fetching_authorized_users": "Fetching authorized users for team: {teamId}",
     "authorized_users_fetched": "Found {count} authorized users (admins/owners)",
     "opening_form_with_authorized_users": "Opening form with {count} authorized users",
-    "modal_opened": "Modal opened successfully"
+    "modal_opened": "Modal opened successfully",
+    "max_page_limit_reached": "Maximum page limit ({limit}) reached, stopping pagination"
   }
 }

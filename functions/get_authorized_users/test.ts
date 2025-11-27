@@ -1,8 +1,5 @@
 import { assertEquals, assertRejects } from "std/testing/asserts.ts";
-import {
-  AuthorizedUser,
-  getAuthorizedUsersWithAdminApi,
-} from "./mod.ts";
+import { AuthorizedUser, getAuthorizedUsersWithAdminApi } from "./mod.ts";
 import { initI18n } from "../../lib/i18n/mod.ts";
 
 // テスト前にi18nを初期化
@@ -386,7 +383,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "getAuthorizedUsersWithAdminApi: 権限ユーザーがいない場合は空配列を返す",
+  name:
+    "getAuthorizedUsersWithAdminApi: 権限ユーザーがいない場合は空配列を返す",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
