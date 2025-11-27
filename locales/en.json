@@ -19,6 +19,8 @@
     "missing_notification_channel": "Notification channel ID is required",
     "missing_admin_token": "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
     "fetch_authorized_users_failed": "Failed to fetch authorized users: {error}",
+    "no_authorized_users": "No authorized users found. Please ensure there are admins or owners in the workspace.",
+    "modal_open_failed": "Failed to open the form: {error}",
     "not_authorized_approver": "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
     "validation": {
       "channel_id_empty": "Channel ID cannot be empty",
@@ -50,6 +52,21 @@
     "approved_at": "Approved at {time}",
     "denied_at": "Denied at {time}"
   },
+  "form": {
+    "title": "Request Private Channel",
+    "submit_button": "Request",
+    "cancel_button": "Cancel",
+    "channel_name_label": "Channel Name",
+    "channel_name_placeholder": "project-alpha",
+    "channel_name_hint": "Name of the private channel (without #). Will be converted to lowercase.",
+    "approver_label": "Approver",
+    "approver_placeholder": "Select an approver",
+    "approver_hint": "Only admins and owners can approve private channel creation.",
+    "description_label": "Description",
+    "description_placeholder": "What is this channel for?",
+    "initial_members_label": "Initial Members",
+    "initial_members_placeholder": "Select members to invite"
+  },
   "logs": {
     "starting": "Starting workflow...",
     "completed": "Workflow completed",
@@ -65,6 +82,8 @@
     "creating_channel_after_approval": "Creating channel '{name}' after approval",
     "members_invited": "{count} members invited to the channel",
     "fetching_authorized_users": "Fetching authorized users for team: {teamId}",
-    "authorized_users_fetched": "Found {count} authorized users (admins/owners)"
+    "authorized_users_fetched": "Found {count} authorized users (admins/owners)",
+    "opening_form_with_authorized_users": "Opening form with {count} authorized users",
+    "modal_opened": "Modal opened successfully"
   }
 }
