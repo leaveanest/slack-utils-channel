@@ -9,23 +9,59 @@
     "invalid_type": "無効なタイプ: 期待されるのは {expected} で、取得されたのは {actual} です",
     "empty_value": "値を空にすることはできません",
     "invalid_format": "{field} の形式が無効です: 期待されるのは {pattern} です",
+    "channel_members_fetch_failed": "チャンネルメンバーの取得に失敗しました: {error}",
+    "channel_create_failed": "チャンネルの作成に失敗しました: {error}",
+    "invalid_channel_name": "無効なチャンネル名です: {name}",
+    "member_invite_failed": "メンバーの招待に失敗しました: {error}",
+    "channel_topic_set_failed": "チャンネルトピックの設定に失敗しました: {error}",
+    "missing_team_id": "Enterprise Grid環境ではチームIDが必要です",
+    "channel_info_failed": "チャンネル情報の取得に失敗しました: {error}",
+    "missing_notification_channel": "通知チャンネルIDが必要です",
+    "missing_admin_token": "管理者ユーザートークン（SLACK_ADMIN_USER_TOKEN）が設定されていません",
+    "not_authorized_approver": "⚠️ このリクエストを承認する権限がありません。<@{approver}> のみが承認または拒否できます。",
     "validation": {
       "channel_id_empty": "チャンネルIDを空にすることはできません",
       "channel_id_format": "チャンネルIDは 'C' で始まり、大文字の英数字が続く必要があります",
       "user_id_empty": "ユーザーIDを空にすることはできません",
       "user_id_format": "ユーザーIDは 'U' または 'W' で始まり、大文字の英数字が続く必要があります",
-      "value_empty": "値を空にすることはできません"
+      "value_empty": "値を空にすることはできません",
+      "channel_name_empty": "チャンネル名を空にすることはできません",
+      "channel_name_too_long": "チャンネル名は80文字以内である必要があります"
     }
   },
   "messages": {
     "channel_summary": "チャンネル: {name}, メンバー数: {count}",
     "success": "操作が正常に完了しました",
-    "processing": "リクエストを処理中..."
+    "processing": "リクエストを処理中...",
+    "channel_created": "チャンネル '{name}' を作成しました",
+    "members_invited": "{count} 人のメンバーをチャンネルに招待しました",
+    "no_initial_members": "なし",
+    "no_description": "説明なし",
+    "approval_request_title": "📋 プライベートチャンネル作成リクエスト: #{channel}",
+    "approval_request_header": "🔒 プライベートチャンネル作成リクエスト",
+    "approval_request_details": "*リクエスト者:* <@{requester}>\n*チャンネル名:* `#{channel}`\n*説明:* {description}\n*初期メンバー:* {members}",
+    "approve_button": "✅ 承認",
+    "deny_button": "❌ 拒否",
+    "approval_context": "👤 <@{approver}> の承認が必要です",
+    "channel_approved": "✅ *プライベートチャンネルが承認・作成されました！*\n\n*チャンネル:* <#{channel_id}|{channel}>\n*承認者:* <@{reviewer}>\n*リクエスト者:* <@{requester}>",
+    "channel_denied": "❌ *プライベートチャンネルのリクエストが拒否されました*\n\n*チャンネル:* `#{channel}`\n*拒否者:* <@{reviewer}>\n*リクエスト者:* <@{requester}>",
+    "channel_creation_failed": "⚠️ *プライベートチャンネルの作成に失敗しました*\n\n*チャンネル:* `#{channel}`\n*エラー:* {error}",
+    "approved_at": "{time} に承認",
+    "denied_at": "{time} に拒否"
   },
   "logs": {
     "starting": "ワークフローを開始しています...",
     "completed": "ワークフローが完了しました",
     "loading_channel": "チャンネル情報を読み込み中...",
-    "channel_loaded": "チャンネル {name} が正常に読み込まれました"
+    "channel_loaded": "チャンネル {name} が正常に読み込まれました",
+    "fetching_members": "チャンネル {channelId} のメンバーを取得中...",
+    "creating_channel": "プライベートチャンネルを作成中: {name}",
+    "channel_created_private": "プライベートチャンネルを作成しました（ID: {id}）",
+    "inviting_members": "{count} 人のメンバーを招待中...",
+    "creating_channel_admin_api": "Admin API経由でプライベートチャンネルを作成中: {name}",
+    "sending_approval_request": "チャンネル '{channel}' の承認リクエストを '{approver}' に送信中",
+    "approval_request_sent": "承認リクエストを送信しました",
+    "creating_channel_after_approval": "承認後にチャンネル '{name}' を作成中",
+    "members_invited": "{count} 人のメンバーを招待しました"
   }
 }
