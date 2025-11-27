@@ -18,7 +18,8 @@ interface AdminUser {
 }
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: 管理者のみをフィルタリングする",
+  name:
+    "filterUsersWithPrivateChannelPermission: 管理者のみをフィルタリングする",
   fn: () => {
     const users: AdminUser[] = [
       { id: "U001", is_admin: true },
@@ -48,7 +49,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: プライマリオーナーをフィルタリングする",
+  name:
+    "filterUsersWithPrivateChannelPermission: プライマリオーナーをフィルタリングする",
   fn: () => {
     const users: AdminUser[] = [
       { id: "U001", is_primary_owner: true },
@@ -62,7 +64,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: 管理者・オーナー・プライマリオーナーの全てをフィルタリングする",
+  name:
+    "filterUsersWithPrivateChannelPermission: 管理者・オーナー・プライマリオーナーの全てをフィルタリングする",
   fn: () => {
     const users: AdminUser[] = [
       { id: "U001", is_admin: true },
@@ -108,7 +111,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: 制限付きユーザー（ゲスト）を除外する",
+  name:
+    "filterUsersWithPrivateChannelPermission: 制限付きユーザー（ゲスト）を除外する",
   fn: () => {
     const users: AdminUser[] = [
       { id: "U001", is_admin: true, is_restricted: false },
@@ -123,7 +127,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: 権限のあるユーザーがいない場合は空配列を返す",
+  name:
+    "filterUsersWithPrivateChannelPermission: 権限のあるユーザーがいない場合は空配列を返す",
   fn: () => {
     const users: AdminUser[] = [
       { id: "U001", is_admin: false },
@@ -138,7 +143,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: 空のユーザーリストに対しては空配列を返す",
+  name:
+    "filterUsersWithPrivateChannelPermission: 空のユーザーリストに対しては空配列を返す",
   fn: () => {
     const users: AdminUser[] = [];
 
@@ -149,7 +155,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: 複合条件（管理者かつオーナー）も正しくフィルタリングする",
+  name:
+    "filterUsersWithPrivateChannelPermission: 複合条件（管理者かつオーナー）も正しくフィルタリングする",
   fn: () => {
     const users: AdminUser[] = [
       { id: "U001", is_admin: true, is_owner: true, is_primary_owner: false },
@@ -170,7 +177,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "filterUsersWithPrivateChannelPermission: 全ての除外条件を複合的にテストする",
+  name:
+    "filterUsersWithPrivateChannelPermission: 全ての除外条件を複合的にテストする",
   fn: () => {
     const users: AdminUser[] = [
       // 含まれるべきユーザー
