@@ -18,6 +18,7 @@
     "channel_info_failed": "チャンネル情報の取得に失敗しました: {error}",
     "missing_notification_channel": "通知チャンネルIDが必要です",
     "missing_admin_token": "管理者ユーザートークン（SLACK_ADMIN_USER_TOKEN）が設定されていません",
+    "not_authorized_approver": "⚠️ このリクエストを承認する権限がありません。<@{approver}> のみが承認または拒否できます。",
     "validation": {
       "channel_id_empty": "チャンネルIDを空にすることはできません",
       "channel_id_format": "チャンネルIDは 'C' で始まり、大文字の英数字が続く必要があります",

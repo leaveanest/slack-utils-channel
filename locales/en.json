@@ -18,6 +18,7 @@
     "channel_info_failed": "Failed to get channel info: {error}",
     "missing_notification_channel": "Notification channel ID is required",
     "missing_admin_token": "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
+    "not_authorized_approver": "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
     "validation": {
       "channel_id_empty": "Channel ID cannot be empty",
       "channel_id_format": "Channel ID must start with 'C' followed by uppercase alphanumeric characters",

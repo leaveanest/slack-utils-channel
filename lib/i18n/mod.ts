@@ -37,6 +37,13 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       invalid_channel_name: "Invalid channel name: {name}",
       member_invite_failed: "Failed to invite members: {error}",
       channel_topic_set_failed: "Failed to set channel topic: {error}",
+      missing_team_id: "Team ID is required for Enterprise Grid environments",
+      channel_info_failed: "Failed to get channel info: {error}",
+      missing_notification_channel: "Notification channel ID is required",
+      missing_admin_token:
+        "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
+      not_authorized_approver:
+        "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
       validation: {
         channel_id_empty: "Channel ID cannot be empty",
         channel_id_format:
@@ -55,6 +62,23 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       processing: "Processing request...",
       channel_created: "Channel '{name}' created successfully",
       members_invited: "{count} members invited to the channel",
+      no_initial_members: "None",
+      no_description: "No description",
+      approval_request_title: "📋 Private Channel Request: #{channel}",
+      approval_request_header: "🔒 Private Channel Creation Request",
+      approval_request_details:
+        "*Requester:* <@{requester}>\n*Channel Name:* `#{channel}`\n*Description:* {description}\n*Initial Members:* {members}",
+      approve_button: "✅ Approve",
+      deny_button: "❌ Deny",
+      approval_context: "👤 Approval required from <@{approver}>",
+      channel_approved:
+        "✅ *Private channel approved and created!*\n\n*Channel:* <#{channel_id}|{channel}>\n*Approved by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
+      channel_denied:
+        "❌ *Private channel request denied*\n\n*Channel:* `#{channel}`\n*Denied by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
+      channel_creation_failed:
+        "⚠️ *Failed to create private channel*\n\n*Channel:* `#{channel}`\n*Error:* {error}",
+      approved_at: "Approved at {time}",
+      denied_at: "Denied at {time}",
     },
     logs: {
       starting: "Starting workflow...",
@@ -65,6 +89,14 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       creating_channel: "Creating private channel: {name}",
       channel_created_private: "Private channel created with ID: {id}",
       inviting_members: "Inviting {count} members...",
+      creating_channel_admin_api:
+        "Creating private channel via Admin API: {name}",
+      sending_approval_request:
+        "Sending approval request for channel '{channel}' to approver '{approver}'",
+      approval_request_sent: "Approval request sent successfully",
+      creating_channel_after_approval:
+        "Creating channel '{name}' after approval",
+      members_invited: "{count} members invited to the channel",
     },
   },
   ja: {
@@ -86,6 +118,13 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       member_invite_failed: "メンバーの招待に失敗しました: {error}",
       channel_topic_set_failed:
         "チャンネルトピックの設定に失敗しました: {error}",
+      missing_team_id: "Enterprise Grid環境ではチームIDが必要です",
+      channel_info_failed: "チャンネル情報の取得に失敗しました: {error}",
+      missing_notification_channel: "通知チャンネルIDが必要です",
+      missing_admin_token:
+        "管理者ユーザートークン（SLACK_ADMIN_USER_TOKEN）が設定されていません",
+      not_authorized_approver:
+        "⚠️ このリクエストを承認する権限がありません。<@{approver}> のみが承認または拒否できます。",
       validation: {
         channel_id_empty: "チャンネルIDを空にすることはできません",
         channel_id_format:
@@ -104,6 +143,24 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       processing: "リクエストを処理中...",
       channel_created: "チャンネル '{name}' を作成しました",
       members_invited: "{count} 人のメンバーをチャンネルに招待しました",
+      no_initial_members: "なし",
+      no_description: "説明なし",
+      approval_request_title:
+        "📋 プライベートチャンネル作成リクエスト: #{channel}",
+      approval_request_header: "🔒 プライベートチャンネル作成リクエスト",
+      approval_request_details:
+        "*リクエスト者:* <@{requester}>\n*チャンネル名:* `#{channel}`\n*説明:* {description}\n*初期メンバー:* {members}",
+      approve_button: "✅ 承認",
+      deny_button: "❌ 拒否",
+      approval_context: "👤 <@{approver}> の承認が必要です",
+      channel_approved:
+        "✅ *プライベートチャンネルが承認・作成されました！*\n\n*チャンネル:* <#{channel_id}|{channel}>\n*承認者:* <@{reviewer}>\n*リクエスト者:* <@{requester}>",
+      channel_denied:
+        "❌ *プライベートチャンネルのリクエストが拒否されました*\n\n*チャンネル:* `#{channel}`\n*拒否者:* <@{reviewer}>\n*リクエスト者:* <@{requester}>",
+      channel_creation_failed:
+        "⚠️ *プライベートチャンネルの作成に失敗しました*\n\n*チャンネル:* `#{channel}`\n*エラー:* {error}",
+      approved_at: "{time} に承認",
+      denied_at: "{time} に拒否",
     },
     logs: {
       starting: "ワークフローを開始しています...",
@@ -115,6 +172,13 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       channel_created_private:
         "プライベートチャンネルを作成しました（ID: {id}）",
       inviting_members: "{count} 人のメンバーを招待中...",
+      creating_channel_admin_api:
+        "Admin API経由でプライベートチャンネルを作成中: {name}",
+      sending_approval_request:
+        "チャンネル '{channel}' の承認リクエストを '{approver}' に送信中",
+      approval_request_sent: "承認リクエストを送信しました",
+      creating_channel_after_approval: "承認後にチャンネル '{name}' を作成中",
+      members_invited: "{count} 人のメンバーを招待しました",
     },
   },
 };

@@ -1,10 +1,13 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
-import { t } from "../../lib/i18n/mod.ts";
+import { z } from "zod";
+import { initI18n, t } from "../../lib/i18n/mod.ts";
 import {
   nonEmptyStringSchema,
   userIdSchema,
 } from "../../lib/validation/schemas.ts";
-import { z } from "zod";
+
+// i18nを初期化
+await initI18n();
 
 /**
  * プライベートチャンネル作成リクエスト関数の定義
@@ -246,6 +249,7 @@ export default SlackFunction(
                 value: JSON.stringify({
                   channel_name: normalizedName,
                   requester_id: requesterId,
+                  approver_id: approverId,
                   description: description || "",
                   initial_members: initialMembers || [],
                   approval_channel_id: approvalChannelId,
@@ -263,6 +267,7 @@ export default SlackFunction(
                 value: JSON.stringify({
                   channel_name: normalizedName,
                   requester_id: requesterId,
+                  approver_id: approverId,
                 }),
               },
             ],
@@ -306,6 +311,7 @@ export default SlackFunction(
       const requestData = JSON.parse(action.value || "{}");
       const channelName = requestData.channel_name;
       const requesterId = requestData.requester_id;
+      const approverId = requestData.approver_id;
       const description = requestData.description;
       const initialMembers = requestData.initial_members || [];
       const approvalChannelId = requestData.approval_channel_id;
@@ -313,9 +319,24 @@ export default SlackFunction(
       console.log("Request details:", {
         channelName,
         requesterId,
+        approverId,
         approvalChannelId,
         initialMembers,
       });
+
+      // 承認者チェック: 指定された承認者のみが承認可能
+      if (approverId && reviewerId !== approverId) {
+        console.log(
+          `Unauthorized approval attempt: ${reviewerId} is not the designated approver ${approverId}`,
+        );
+        // エラーメッセージを投稿
+        await client.chat.postEphemeral({
+          channel: approvalChannelId,
+          user: reviewerId,
+          text: t("errors.not_authorized_approver", { approver: approverId }),
+        });
+        return;
+      }
 
       try {
         // 環境変数から Admin User Token を取得
@@ -368,9 +389,13 @@ export default SlackFunction(
         }
 
         // Admin API でメンバーを招待する関数
+        // user_ids はカンマ区切り文字列で渡す必要がある
         const inviteWithAdminApi = async (
-          userId: string,
+          userIds: string[],
         ): Promise<{ ok: boolean; error?: string }> => {
+          if (userIds.length === 0) {
+            return { ok: true };
+          }
           const response = await fetch(
             "https://slack.com/api/admin.conversations.invite",
             {
@@ -381,47 +406,33 @@ export default SlackFunction(
               },
               body: JSON.stringify({
                 channel_id: newChannelId,
-                user_ids: [userId],
+                user_ids: userIds.join(","), // カンマ区切り文字列に変換
               }),
             },
           );
           return await response.json();
         };
 
-        // リクエスト者を招待（必須）
-        console.log("Inviting requester via Admin API:", requesterId);
-        try {
-          const requesterInviteResult = await inviteWithAdminApi(requesterId);
-          console.log("Requester invite result:", {
-            ok: requesterInviteResult.ok,
-            error: requesterInviteResult.error,
-          });
-        } catch (inviteError) {
-          console.error("Failed to invite requester:", inviteError);
+        // リクエスト者と初期メンバーをまとめて招待
+        const allMembersToInvite = [requesterId];
+        for (const member of initialMembers) {
+          if (!allMembersToInvite.includes(member)) {
+            allMembersToInvite.push(member);
+          }
         }
 
-        // 初期メンバーを招待（オプション）
-        if (initialMembers.length > 0) {
-          console.log(
-            "Inviting initial members via Admin API:",
-            initialMembers,
-          );
-          for (const memberId of initialMembers) {
-            // リクエスト者は既に招待済みなのでスキップ
-            if (memberId === requesterId) continue;
-            try {
-              const inviteResult = await inviteWithAdminApi(memberId);
-              console.log(`Member ${memberId} invite result:`, {
-                ok: inviteResult.ok,
-                error: inviteResult.error,
-              });
-            } catch (inviteError) {
-              console.error(
-                `Failed to invite member ${memberId}:`,
-                inviteError,
-              );
-            }
+        console.log("Inviting members via Admin API:", allMembersToInvite);
+        try {
+          const inviteResult = await inviteWithAdminApi(allMembersToInvite);
+          console.log("Invite result:", {
+            ok: inviteResult.ok,
+            error: inviteResult.error,
+          });
+          if (!inviteResult.ok) {
+            console.error("Failed to invite members:", inviteResult.error);
           }
+        } catch (inviteError) {
+          console.error("Failed to invite members:", inviteError);
         }
 
         // メッセージを更新
@@ -518,6 +529,20 @@ export default SlackFunction(
       const requestData = JSON.parse(action.value || "{}");
       const channelName = requestData.channel_name;
       const requesterId = requestData.requester_id;
+      const approverId = requestData.approver_id;
+
+      // 承認者チェック: 指定された承認者のみが拒否可能
+      if (approverId && reviewerId !== approverId) {
+        console.log(
+          `Unauthorized denial attempt: ${reviewerId} is not the designated approver ${approverId}`,
+        );
+        await client.chat.postEphemeral({
+          channel: channelId,
+          user: reviewerId,
+          text: t("errors.not_authorized_approver", { approver: approverId }),
+        });
+        return;
+      }
 
       // メッセージを更新
       if (messageTs && channelId) {
