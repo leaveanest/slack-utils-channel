@@ -413,8 +413,12 @@ export default SlackFunction(
           return await response.json();
         };
 
-        // リクエスト者と初期メンバーをまとめて招待
+        // リクエスト者、承認者、初期メンバーをまとめて招待
         const allMembersToInvite = [requesterId];
+        // 承認者を追加（重複チェック）
+        if (!allMembersToInvite.includes(reviewerId)) {
+          allMembersToInvite.push(reviewerId);
+        }
         for (const member of initialMembers) {
           if (!allMembersToInvite.includes(member)) {
             allMembersToInvite.push(member);
