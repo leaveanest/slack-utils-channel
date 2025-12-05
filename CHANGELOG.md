@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.0.0...v1.1.0) (2025-12-05)
+
+
+### Features
+
+* add filtered approver selection for private channel requests ([02ab429](https://github.com/leaveanest/slack-utils-channel/commit/02ab42939e90df65de6ed48294b5411282030ffd))
+* add get_authorized_users function to filter admins/owners ([bfba2c2](https://github.com/leaveanest/slack-utils-channel/commit/bfba2c26990ef4bce9083f8c793cff41c456af30))
+* enhance private channel request workflow with authorized user type ([9711835](https://github.com/leaveanest/slack-utils-channel/commit/9711835b863d303ef17fb39d593e6d7c66d217da))
+* update channel ID validation to include private and DM formats ([2183a3b](https://github.com/leaveanest/slack-utils-channel/commit/2183a3b286b50fab8d136eeeefb18738cd639832))
+
 ## 1.0.0 (2025-11-27)
 
 
