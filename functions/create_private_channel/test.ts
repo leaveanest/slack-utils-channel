@@ -350,7 +350,11 @@ Deno.test({
     );
 
     // 正規化後に空文字になるため、invalid_channel_nameエラー
-    assertEquals(error.message.includes("Invalid channel name"), true);
+    // 日本語または英語のエラーメッセージをチェック
+    const hasExpectedInvalidNameError =
+      error.message.includes("Invalid channel name") ||
+      error.message.includes("無効なチャンネル名です");
+    assertEquals(hasExpectedInvalidNameError, true);
   },
 });
 
@@ -480,9 +484,11 @@ Deno.test({
     );
 
     // エラーメッセージに channel_not_found または channel_info_failed が含まれることを確認
+    // 日本語または英語のエラーメッセージをチェック
     const hasExpectedError = error.message.includes("channel_not_found") ||
       error.message.includes("channel_info_failed") ||
-      error.message.includes("Failed to get channel info");
+      error.message.includes("Failed to get channel info") ||
+      error.message.includes("チャンネル情報の取得に失敗しました");
     assertEquals(hasExpectedError, true);
   },
 });
