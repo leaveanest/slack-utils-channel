@@ -24,7 +24,7 @@
     "not_authorized_approver": "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
     "validation": {
       "channel_id_empty": "Channel ID cannot be empty",
-      "channel_id_format": "Channel ID must start with 'C' followed by uppercase alphanumeric characters",
+      "channel_id_format": "Channel ID must start with 'C' (public), 'G' (private), or 'D' (DM) followed by uppercase alphanumeric characters",
       "user_id_empty": "User ID cannot be empty",
       "user_id_format": "User ID must start with 'U' or 'W' followed by uppercase alphanumeric characters",
       "value_empty": "Value cannot be empty",

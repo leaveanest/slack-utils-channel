@@ -52,7 +52,7 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       validation: {
         channel_id_empty: "Channel ID cannot be empty",
         channel_id_format:
-          "Channel ID must start with 'C' followed by uppercase alphanumeric characters",
+          "Channel ID must start with 'C' (public), 'G' (private), or 'D' (DM) followed by uppercase alphanumeric characters",
         user_id_empty: "User ID cannot be empty",
         user_id_format:
           "User ID must start with 'U' or 'W' followed by uppercase alphanumeric characters",
@@ -163,7 +163,7 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       validation: {
         channel_id_empty: "チャンネルIDを空にすることはできません",
         channel_id_format:
-          "チャンネルIDは 'C' で始まり、大文字の英数字が続く必要があります",
+          "チャネルIDは'C'（パブリック）、'G'（プライベート）、または'D'（DM）で始まり、その後に大文字の英数字が続く必要があります",
         user_id_empty: "ユーザーIDを空にすることはできません",
         user_id_format:
           "ユーザーIDは 'U' または 'W' で始まり、大文字の英数字が続く必要があります",

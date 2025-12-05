@@ -10,8 +10,11 @@ import { initI18n, t } from "../i18n/mod.ts";
 await initI18n();
 
 /**
- * i18n対応のSlackチャンネル ID スキーマを生成
- * 形式: C + 英数字大文字
+ * i18n対応のSlackチャンネル/会話 ID スキーマを生成
+ * 形式:
+ *   - C + 英数字大文字 (パブリックチャンネル)
+ *   - G + 英数字大文字 (プライベートチャンネル)
+ *   - D + 英数字大文字 (ダイレクトメッセージ)
  *
  * エラーメッセージは検証時に動的に評価されるため、
  * ロケール変更に対応します。
@@ -21,7 +24,9 @@ await initI18n();
  * @example
  * ```typescript
  * const schema = createChannelIdSchema();
- * const channelId = schema.parse("C12345678");
+ * const channelId = schema.parse("C12345678"); // パブリックチャンネル
+ * const privateChannelId = schema.parse("G12345678"); // プライベートチャンネル
+ * const dmId = schema.parse("D12345678"); // DM
  * ```
  */
 export function createChannelIdSchema() {
@@ -36,7 +41,8 @@ export function createChannelIdSchema() {
       });
       return;
     }
-    if (!/^C[A-Z0-9]+$/.test(val)) {
+    // C: パブリックチャンネル, G: プライベートチャンネル, D: DM
+    if (!/^[CGD][A-Z0-9]+$/.test(val)) {
       ctx.addIssue({
         code: z.ZodIssueCode.invalid_string,
         validation: "regex",

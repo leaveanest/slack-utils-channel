@@ -24,7 +24,7 @@
     "not_authorized_approver": "⚠️ このリクエストを承認する権限がありません。<@{approver}>のみが承認または却下できます。",
     "validation": {
       "channel_id_empty": "チャネルIDを空にすることはできません",
-      "channel_id_format": "チャネルIDは'C'で始まり、その後に大文字の英数字が続く必要があります",
+      "channel_id_format": "チャネルIDは'C'（パブリック）、'G'（プライベート）、または'D'（DM）で始まり、その後に大文字の英数字が続く必要があります",
       "user_id_empty": "ユーザーIDを空にすることはできません",
       "user_id_format": "ユーザーIDは'U'または'W'で始まり、その後に大文字の英数字が続く必要があります",
       "value_empty": "値を空にすることはできません",
