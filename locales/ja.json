@@ -18,10 +18,13 @@
     "channel_info_failed": "チャネル情報の取得に失敗しました: {error}",
     "missing_notification_channel": "通知チャネルIDが必要です",
     "missing_admin_token": "管理者ユーザートークン(SLACK_ADMIN_USER_TOKEN)が設定されていません",
+    "fetch_authorized_users_failed": "認可ユーザーの取得に失敗しました: {error}",
+    "no_authorized_users": "認可ユーザーが見つかりません。ワークスペースに管理者またはオーナーがいることを確認してください。",
+    "modal_open_failed": "フォームを開くことができませんでした: {error}",
     "not_authorized_approver": "⚠️ このリクエストを承認する権限がありません。<@{approver}>のみが承認または却下できます。",
     "validation": {
       "channel_id_empty": "チャネルIDを空にすることはできません",
-      "channel_id_format": "チャネルIDは'C'で始まり、その後に大文字の英数字が続く必要があります",
+      "channel_id_format": "チャネルIDは'C'（パブリック）、'G'（プライベート）、または'D'（DM）で始まり、その後に大文字の英数字が続く必要があります",
       "user_id_empty": "ユーザーIDを空にすることはできません",
       "user_id_format": "ユーザーIDは'U'または'W'で始まり、その後に大文字の英数字が続く必要があります",
       "value_empty": "値を空にすることはできません",
@@ -49,6 +52,21 @@
     "approved_at": "{time}に承認されました",
     "denied_at": "{time}に却下されました"
   },
+  "form": {
+    "title": "プライベートチャンネルをリクエスト",
+    "submit_button": "リクエスト",
+    "cancel_button": "キャンセル",
+    "channel_name_label": "チャンネル名",
+    "channel_name_placeholder": "project-alpha",
+    "channel_name_hint": "プライベートチャンネルの名前（#なし）。小文字に変換されます。",
+    "approver_label": "承認者",
+    "approver_placeholder": "承認者を選択してください",
+    "approver_hint": "管理者とオーナーのみがプライベートチャンネルの作成を承認できます。",
+    "description_label": "説明",
+    "description_placeholder": "このチャンネルの目的は？",
+    "initial_members_label": "初期メンバー",
+    "initial_members_placeholder": "招待するメンバーを選択してください"
+  },
   "logs": {
     "starting": "ワークフローを開始しています...",
     "completed": "ワークフローが完了しました",
@@ -62,6 +80,11 @@
     "sending_approval_request": "チャネル'{channel}'の承認リクエストを承認者'{approver}'に送信中です",
     "approval_request_sent": "承認リクエストが正常に送信されました",
     "creating_channel_after_approval": "承認後、チャネル'{name}'を作成中です",
-    "members_invited": "{count}人のメンバーがチャネルに招待されました"
+    "members_invited": "{count}人のメンバーがチャネルに招待されました",
+    "fetching_authorized_users": "チーム {teamId} の認可ユーザーを取得中です",
+    "authorized_users_fetched": "{count}人の認可ユーザー（管理者/オーナー）が見つかりました",
+    "opening_form_with_authorized_users": "{count}人の認可ユーザーでフォームを開いています",
+    "modal_opened": "モーダルが正常に開きました",
+    "max_page_limit_reached": "最大ページ数（{limit}）に達したため、ページネーションを停止します"
   }
 }

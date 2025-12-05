@@ -24,11 +24,27 @@ await loadLocale("ja");
 
 const originalLocale = getLocale() as typeof SUPPORTED_LOCALES[number];
 
-Deno.test("channelIdSchema: 正常なチャンネルIDを検証", () => {
+Deno.test("channelIdSchema: 正常なパブリックチャンネルIDを検証", () => {
   const result = channelIdSchema.safeParse("C12345678");
   assertEquals(result.success, true);
   if (result.success) {
     assertEquals(result.data, "C12345678");
+  }
+});
+
+Deno.test("channelIdSchema: 正常なプライベートチャンネルIDを検証", () => {
+  const result = channelIdSchema.safeParse("G12345678");
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data, "G12345678");
+  }
+});
+
+Deno.test("channelIdSchema: 正常なDM IDを検証", () => {
+  const result = channelIdSchema.safeParse("D12345678");
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data, "D12345678");
   }
 });
 
@@ -37,7 +53,8 @@ Deno.test("channelIdSchema: 不正なチャンネルIDを拒否（小文字）",
   assertEquals(result.success, false);
 });
 
-Deno.test("channelIdSchema: 不正なチャンネルIDを拒否（Cで開始しない）", () => {
+Deno.test("channelIdSchema: 不正なチャンネルIDを拒否（無効なプレフィックス）", () => {
+  // U はユーザーIDなのでチャンネルIDとしては無効
   const result = channelIdSchema.safeParse("U12345678");
   assertEquals(result.success, false);
 });
@@ -106,7 +123,7 @@ Deno.test({
     if (!result.success) {
       assertEquals(
         result.error.errors[0].message,
-        "Channel ID must start with 'C' followed by uppercase alphanumeric characters",
+        "Channel ID must start with 'C' (public), 'G' (private), or 'D' (DM) followed by uppercase alphanumeric characters",
       );
     }
     setLocale(originalLocale); // 元に戻す
@@ -126,7 +143,7 @@ Deno.test({
     if (!result.success) {
       // 日本語のエラーメッセージを確認（部分一致）
       assertEquals(
-        result.error.errors[0].message.includes("チャンネルID"),
+        result.error.errors[0].message.includes("チャネルID"),
         true,
       );
     }
@@ -228,7 +245,7 @@ Deno.test({
     if (!result1.success) {
       assertEquals(
         result1.error.errors[0].message,
-        "Channel ID must start with 'C' followed by uppercase alphanumeric characters",
+        "Channel ID must start with 'C' (public), 'G' (private), or 'D' (DM) followed by uppercase alphanumeric characters",
       );
     }
 
@@ -239,7 +256,7 @@ Deno.test({
     if (!result2.success) {
       // 日本語のエラーメッセージが表示される
       assertEquals(
-        result2.error.errors[0].message.includes("チャンネルID"),
+        result2.error.errors[0].message.includes("チャネルID"),
         true,
       );
     }
@@ -252,7 +269,7 @@ Deno.test({
       // 再び英語のエラーメッセージが表示される
       assertEquals(
         result3.error.errors[0].message,
-        "Channel ID must start with 'C' followed by uppercase alphanumeric characters",
+        "Channel ID must start with 'C' (public), 'G' (private), or 'D' (DM) followed by uppercase alphanumeric characters",
       );
     }
 
