@@ -50,7 +50,8 @@ const formStep = CreateChannelWorkflow.addStep(
           name: "is_private",
           title: "プライベートチャンネル",
           type: Schema.types.boolean,
-          description: "プライベートチャンネルとして作成（パブリックの場合はチェックを外す）",
+          description:
+            "プライベートチャンネルとして作成（パブリックの場合はチェックを外す）",
           default: true,
         },
         {
