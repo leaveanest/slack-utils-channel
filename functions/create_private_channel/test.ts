@@ -350,7 +350,8 @@ Deno.test({
     );
 
     // 正規化後に空文字になるため、invalid_channel_nameエラー
-    assertEquals(error.message.includes("Invalid channel name"), true);
+    // デフォルトロケールは日本語
+    assertEquals(error.message.includes("無効なチャンネル名です"), true);
   },
 });
 
