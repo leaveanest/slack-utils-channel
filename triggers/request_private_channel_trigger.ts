@@ -12,9 +12,8 @@ const RequestPrivateChannelTrigger: Trigger<
   typeof RequestPrivateChannelWorkflow.definition
 > = {
   type: TriggerTypes.Shortcut,
-  name: "Request Private Channel",
-  description:
-    "Request approval for private channel creation from an administrator",
+  name: "プライベートチャンネルをリクエスト",
+  description: "管理者にプライベートチャンネルの作成承認をリクエストします",
   workflow:
     `#/workflows/${RequestPrivateChannelWorkflow.definition.callback_id}`,
   inputs: {

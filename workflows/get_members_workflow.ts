@@ -8,13 +8,13 @@ import { GetChannelMembersDefinition } from "../functions/get_channel_members/mo
  */
 const GetMembersWorkflow = DefineWorkflow({
   callback_id: "get_members_workflow",
-  title: "Get Channel Members",
-  description: "Retrieve all members in a channel",
+  title: "チャンネルメンバーを取得",
+  description: "チャンネルの全メンバーを取得します",
   input_parameters: {
     properties: {
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "Target channel ID",
+        description: "対象チャンネルID",
       },
     },
     required: ["channel_id"],
@@ -32,8 +32,7 @@ GetMembersWorkflow.addStep(
 // 結果をメッセージで表示
 GetMembersWorkflow.addStep(Schema.slack.functions.SendMessage, {
   channel_id: GetMembersWorkflow.inputs.channel_id,
-  message:
-    "✅ Channel members retrieved! Check the workflow output for details.",
+  message: "✅ チャンネルメンバーを取得しました！詳細はワークフロー出力を確認してください。",
 });
 
 export default GetMembersWorkflow;

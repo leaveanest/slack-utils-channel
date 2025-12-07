@@ -3,12 +3,12 @@ import { TriggerContextData, TriggerTypes } from "deno-slack-api/mod.ts";
 import ExampleWorkflow from "../workflows/example_workflow.ts";
 
 // Load category from environment variable
-const CATEGORY = Deno.env.get("SLACK_CATEGORY") || "Channel";
+const CATEGORY = Deno.env.get("SLACK_CATEGORY") || "チャンネル";
 
 const ExampleTrigger: Trigger<typeof ExampleWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
-  name: `Run ${CATEGORY} Lookup`,
-  description: `Lookup ${CATEGORY.toLowerCase()} information`,
+  name: `${CATEGORY}情報を検索`,
+  description: `${CATEGORY}情報を取得します`,
   workflow: `#/workflows/${ExampleWorkflow.definition.callback_id}`,
   inputs: {
     channel_id: {

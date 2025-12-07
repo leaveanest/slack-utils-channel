@@ -14,22 +14,21 @@ import { ShowPrivateChannelFormDefinition } from "../functions/show_private_chan
  */
 const RequestPrivateChannelWorkflow = DefineWorkflow({
   callback_id: "request_private_channel_workflow",
-  title: "Request Private Channel",
-  description:
-    "Request approval for private channel creation from an administrator",
+  title: "プライベートチャンネルをリクエスト",
+  description: "管理者にプライベートチャンネルの作成承認をリクエストします",
   input_parameters: {
     properties: {
       interactivity: {
         type: Schema.slack.types.interactivity,
-        description: "Interactivity context for opening forms",
+        description: "フォームを開くためのインタラクティブコンテキスト",
       },
       user_id: {
         type: Schema.slack.types.user_id,
-        description: "User ID of the requester",
+        description: "リクエスト者のユーザーID",
       },
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "Channel where the request was made",
+        description: "リクエストが行われたチャンネル",
       },
     },
     required: ["interactivity", "user_id", "channel_id"],

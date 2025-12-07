@@ -2,17 +2,17 @@ import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
 import { ExampleFunctionDefinition } from "../functions/example_function/mod.ts";
 
 // Load category from environment variable
-const CATEGORY = Deno.env.get("SLACK_CATEGORY") || "Channel";
+const CATEGORY = Deno.env.get("SLACK_CATEGORY") || "チャンネル";
 
 const ExampleWorkflow = DefineWorkflow({
   callback_id: "example_workflow",
-  title: `${CATEGORY} Explorer`,
-  description: `Explore ${CATEGORY.toLowerCase()} information`,
+  title: `${CATEGORY}エクスプローラー`,
+  description: `${CATEGORY}情報を探索します`,
   input_parameters: {
     properties: {
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: `Target ${CATEGORY.toLowerCase()} ID`,
+        description: `対象${CATEGORY}ID`,
       },
     },
     required: ["channel_id"],

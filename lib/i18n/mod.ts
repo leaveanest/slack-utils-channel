@@ -7,7 +7,7 @@
 
 type LocaleData = Record<string, unknown>;
 
-let currentLocale = "en";
+let currentLocale = "ja";
 const localeCache: Map<string, LocaleData> = new Map();
 
 /**
@@ -319,26 +319,26 @@ export function getLocale(): string {
 /**
  * Detect locale from environment variables
  *
- * Checks LOCALE, LANG, and defaults to "en"
+ * Checks LOCALE, LANG, and defaults to "ja"
  *
  * @returns Detected locale code
  */
 export function detectLocale(): SupportedLocale {
   try {
     // Check LOCALE environment variable first
-    const locale = Deno.env.get("LOCALE") || Deno.env.get("LANG") || "en";
+    const locale = Deno.env.get("LOCALE") || Deno.env.get("LANG") || "ja";
 
     // Extract language code (e.g., "ja_JP.UTF-8" -> "ja")
     const langCode = locale.split(/[_.]/)[0].toLowerCase();
 
-    // Return if supported, otherwise default to English
+    // Return if supported, otherwise default to Japanese
     return SUPPORTED_LOCALES.includes(langCode as SupportedLocale)
       ? langCode as SupportedLocale
-      : "en";
+      : "ja";
   } catch (_error) {
     // Environment variable access not allowed (e.g., in production environment)
-    // Default to English
-    return "en";
+    // Default to Japanese
+    return "ja";
   }
 }
 

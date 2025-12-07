@@ -10,22 +10,21 @@ import { CreatePrivateChannelDefinition } from "../functions/create_private_chan
  */
 const CreateChannelWorkflow = DefineWorkflow({
   callback_id: "create_channel_workflow",
-  title: "Create Channel",
-  description: "Create a new channel (public or private) with detailed logging",
+  title: "チャンネルを作成",
+  description: "新しいチャンネル（パブリックまたはプライベート）を作成します",
   input_parameters: {
     properties: {
       interactivity: {
         type: Schema.slack.types.interactivity,
-        description: "Interactivity context for opening forms",
+        description: "フォームを開くためのインタラクティブコンテキスト",
       },
       user_id: {
         type: Schema.slack.types.user_id,
-        description:
-          "User ID of the workflow executor (required for channel creation)",
+        description: "ワークフロー実行者のユーザーID（チャンネル作成に必要）",
       },
       notification_channel: {
         type: Schema.slack.types.channel_id,
-        description: "Channel to send notification",
+        description: "通知を送信するチャンネル",
       },
     },
     required: ["interactivity", "user_id", "notification_channel"],
@@ -36,36 +35,36 @@ const CreateChannelWorkflow = DefineWorkflow({
 const formStep = CreateChannelWorkflow.addStep(
   Schema.slack.functions.OpenForm,
   {
-    title: "Create Channel",
+    title: "チャンネルを作成",
     interactivity: CreateChannelWorkflow.inputs.interactivity,
-    submit_label: "Create",
+    submit_label: "作成",
     fields: {
       elements: [
         {
           name: "channel_name",
-          title: "Channel Name",
+          title: "チャンネル名",
           type: Schema.types.string,
-          description: "Name of the channel (without #)",
+          description: "チャンネル名（#なし）",
         },
         {
           name: "is_private",
-          title: "Private Channel",
+          title: "プライベートチャンネル",
           type: Schema.types.boolean,
-          description: "Create as private channel (uncheck for public)",
+          description: "プライベートチャンネルとして作成（パブリックの場合はチェックを外す）",
           default: true,
         },
         {
           name: "description",
-          title: "Description",
+          title: "説明",
           type: Schema.types.string,
-          description: "Channel description (optional)",
+          description: "チャンネルの説明（任意）",
         },
         {
           name: "initial_members",
-          title: "Initial Members",
+          title: "初期メンバー",
           type: Schema.types.array,
           items: { type: Schema.slack.types.user_id },
-          description: "Users to invite to the channel (optional)",
+          description: "チャンネルに招待するユーザー（任意）",
         },
       ],
       required: ["channel_name"],
@@ -90,7 +89,7 @@ const createStep = CreateChannelWorkflow.addStep(
 CreateChannelWorkflow.addStep(Schema.slack.functions.SendMessage, {
   channel_id: CreateChannelWorkflow.inputs.notification_channel,
   message:
-    `✅ Channel created: <#${createStep.outputs.channel_id}>\nMembers: ${createStep.outputs.member_count}`,
+    `✅ チャンネルを作成しました: <#${createStep.outputs.channel_id}>\nメンバー数: ${createStep.outputs.member_count}`,
 });
 
 export default CreateChannelWorkflow;
