@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/leaveanest/slack-utils-channel/compare/v1.2.0...v1.2.1) (2025-12-09)
+
+
+### Bug Fixes
+
+* CIでLOCALE環境変数を設定してテストが日本語ロケールで実行されるように修正 ([dd341d4](https://github.com/leaveanest/slack-utils-channel/commit/dd341d446f1cba698f29f4c34b6a96d405e7ed5e))
+
 ## [1.2.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.1.0...v1.2.0) (2025-12-09)
 
 
