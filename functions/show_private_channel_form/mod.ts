@@ -583,6 +583,10 @@ export default SlackFunction(
         };
 
         const allMembersToInvite = [requesterId];
+        // Add the approver to the channel
+        if (approverId && !allMembersToInvite.includes(approverId)) {
+          allMembersToInvite.push(approverId);
+        }
         for (const member of initialMembers) {
           if (!allMembersToInvite.includes(member)) {
             allMembersToInvite.push(member);
