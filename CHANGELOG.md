@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.2.1...v1.3.0) (2025-12-09)
+
+
+### Features
+
+* add optional description parameter for private channel creation ([1579a43](https://github.com/leaveanest/slack-utils-channel/commit/1579a43511c5b373964d136193ee16081fe89d6d))
+
+
+### Bug Fixes
+
+* setTopicからsetPurposeへの変更に伴うテストと埋め込みロケールの更新 ([679a193](https://github.com/leaveanest/slack-utils-channel/commit/679a193854b1a950f655e430b9f3e2bfcb4ffc80))
+* チャンネル説明がsetTopicではなくsetPurposeで設定されるように修正 ([db6108f](https://github.com/leaveanest/slack-utils-channel/commit/db6108fa6898fd43b142763223a5d20a3d88055e))
+
 ## [1.2.1](https://github.com/leaveanest/slack-utils-channel/compare/v1.2.0...v1.2.1) (2025-12-09)
 
 
