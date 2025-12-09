@@ -548,15 +548,15 @@ export default SlackFunction(
         console.log("=== Private channel created successfully ===");
         console.log("Channel ID:", newChannelId);
 
-        // トピック設定
+        // 説明（purpose）設定
         if (description && description.trim().length > 0) {
           try {
-            await client.conversations.setTopic({
+            await client.conversations.setPurpose({
               channel: newChannelId,
-              topic: description,
+              purpose: description,
             });
-          } catch (topicError) {
-            console.error("Failed to set topic:", topicError);
+          } catch (purposeError) {
+            console.error("Failed to set purpose:", purposeError);
           }
         }
 

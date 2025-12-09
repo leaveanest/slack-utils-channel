@@ -222,17 +222,17 @@ export async function createChannel(
 
   let memberCount = 1; // 作成者自身
 
-  // 3. 説明（トピック）を設定（オプション）
+  // 3. 説明（purpose）を設定（オプション）
   if (description && description.trim().length > 0) {
-    const topicResponse = await client.conversations.setTopic({
+    const purposeResponse = await client.conversations.setPurpose({
       channel: channelId,
-      topic: description,
+      purpose: description,
     });
 
-    if (!topicResponse.ok) {
-      const error = topicResponse.error ?? t("errors.unknown_error");
-      console.error(t("errors.channel_topic_set_failed", { error }));
-      // トピック設定失敗はエラーにしない（チャンネルは作成済み）
+    if (!purposeResponse.ok) {
+      const error = purposeResponse.error ?? t("errors.unknown_error");
+      console.error(t("errors.channel_purpose_set_failed", { error }));
+      // 説明設定失敗はエラーにしない（チャンネルは作成済み）
     }
   }
 

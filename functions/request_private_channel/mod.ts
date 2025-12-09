@@ -376,15 +376,15 @@ export default SlackFunction(
         console.log("Channel ID:", newChannelId);
         console.log("==========================================");
 
-        // トピック設定（オプション）
+        // 説明（purpose）設定（オプション）
         if (description && description.trim().length > 0) {
           try {
-            await client.conversations.setTopic({
+            await client.conversations.setPurpose({
               channel: newChannelId,
-              topic: description,
+              purpose: description,
             });
-          } catch (topicError) {
-            console.error("Failed to set topic:", topicError);
+          } catch (purposeError) {
+            console.error("Failed to set purpose:", purposeError);
           }
         }
 

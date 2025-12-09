@@ -13,7 +13,7 @@
     "channel_create_failed": "Failed to create channel: {error}",
     "invalid_channel_name": "Invalid channel name: {name}",
     "member_invite_failed": "Failed to invite members: {error}",
-    "channel_topic_set_failed": "Failed to set channel topic: {error}",
+    "channel_purpose_set_failed": "Failed to set channel description: {error}",
     "missing_team_id": "Team ID is required for Enterprise Grid environments",
     "channel_info_failed": "Failed to get channel info: {error}",
     "missing_notification_channel": "Notification channel ID is required",
