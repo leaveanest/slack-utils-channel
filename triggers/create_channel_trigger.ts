@@ -13,8 +13,8 @@ import CreateChannelWorkflow from "../workflows/create_channel_workflow.ts";
 
 const CreateChannelTrigger: Trigger<typeof CreateChannelWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
-  name: "Create Channel",
-  description: "Create a new channel (public or private) with detailed logging",
+  name: "チャンネルを作成",
+  description: "新しいチャンネル（パブリックまたはプライベート）を作成します",
   workflow: `#/workflows/${CreateChannelWorkflow.definition.callback_id}`,
   inputs: {
     interactivity: {

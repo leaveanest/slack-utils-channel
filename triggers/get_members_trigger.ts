@@ -9,8 +9,8 @@ import GetMembersWorkflow from "../workflows/get_members_workflow.ts";
  */
 const GetMembersTrigger: Trigger<typeof GetMembersWorkflow.definition> = {
   type: TriggerTypes.Shortcut,
-  name: "Get Channel Members",
-  description: "Retrieve all members in the current channel",
+  name: "チャンネルメンバーを取得",
+  description: "現在のチャンネルの全メンバーを取得します",
   workflow: `#/workflows/${GetMembersWorkflow.definition.callback_id}`,
   inputs: {
     channel_id: {

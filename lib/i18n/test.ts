@@ -11,7 +11,7 @@ import {
 import { checkI18n } from "./check.ts";
 
 Deno.test({
-  name: "detectLocale: デフォルトは英語",
+  name: "detectLocale: デフォルトは日本語",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: () => {
@@ -23,7 +23,7 @@ Deno.test({
       Deno.env.delete("LANG");
 
       const locale = detectLocale();
-      assertEquals(locale, "en");
+      assertEquals(locale, "ja");
     } finally {
       if (originalLocale) Deno.env.set("LOCALE", originalLocale);
       if (originalLang) Deno.env.set("LANG", originalLang);
