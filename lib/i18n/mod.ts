@@ -36,7 +36,7 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       channel_create_failed: "Failed to create channel: {error}",
       invalid_channel_name: "Invalid channel name: {name}",
       member_invite_failed: "Failed to invite members: {error}",
-      channel_topic_set_failed: "Failed to set channel topic: {error}",
+      channel_purpose_set_failed: "Failed to set channel description: {error}",
       missing_team_id: "Team ID is required for Enterprise Grid environments",
       channel_info_failed: "Failed to get channel info: {error}",
       missing_notification_channel: "Notification channel ID is required",
@@ -146,8 +146,7 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       channel_create_failed: "チャンネルの作成に失敗しました: {error}",
       invalid_channel_name: "無効なチャンネル名です: {name}",
       member_invite_failed: "メンバーの招待に失敗しました: {error}",
-      channel_topic_set_failed:
-        "チャンネルトピックの設定に失敗しました: {error}",
+      channel_purpose_set_failed: "チャンネル説明の設定に失敗しました: {error}",
       missing_team_id: "Enterprise Grid環境ではチームIDが必要です",
       channel_info_failed: "チャンネル情報の取得に失敗しました: {error}",
       missing_notification_channel: "通知チャンネルIDが必要です",
