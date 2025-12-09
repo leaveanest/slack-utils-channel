@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.1.0...v1.2.0) (2025-12-09)
+
+
+### Features
+
+* add approvers to private channel members on creation ([3236326](https://github.com/leaveanest/slack-utils-channel/commit/32363268ae4407c88ad76864f3665d3614e4192b))
+
 ## [1.1.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.0.0...v1.1.0) (2025-12-05)
 
 
