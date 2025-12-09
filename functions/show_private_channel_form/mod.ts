@@ -98,8 +98,21 @@ async function createPrivateChannelWithAdminApi(
   adminToken: string,
   channelName: string,
   teamId: string,
+  description?: string,
 ): Promise<{ ok: boolean; channel_id?: string; error?: string }> {
   console.log(t("logs.creating_channel_admin_api", { name: channelName }));
+
+  const requestBody: Record<string, unknown> = {
+    name: channelName,
+    is_private: true,
+    team_id: teamId,
+  };
+
+  // 説明がある場合は追加
+  if (description && description.trim().length > 0) {
+    requestBody.description = description;
+    console.log("Creating channel with description:", description);
+  }
 
   const response = await fetch(
     "https://slack.com/api/admin.conversations.create",
@@ -109,11 +122,7 @@ async function createPrivateChannelWithAdminApi(
         "Authorization": `Bearer ${adminToken}`,
         "Content-Type": "application/json; charset=utf-8",
       },
-      body: JSON.stringify({
-        name: channelName,
-        is_private: true,
-        team_id: teamId,
-      }),
+      body: JSON.stringify(requestBody),
     },
   );
 
@@ -529,10 +538,12 @@ export default SlackFunction(
           t("logs.creating_channel_after_approval", { name: channelName }),
         );
 
+        // Admin API でプライベートチャンネルを作成（説明も同時に設定）
         const createResult = await createPrivateChannelWithAdminApi(
           adminToken,
           channelName,
           teamId,
+          description, // 説明をチャンネル作成時に設定
         );
 
         if (!createResult.ok) {
@@ -547,18 +558,6 @@ export default SlackFunction(
 
         console.log("=== Private channel created successfully ===");
         console.log("Channel ID:", newChannelId);
-
-        // トピック設定
-        if (description && description.trim().length > 0) {
-          try {
-            await client.conversations.setTopic({
-              channel: newChannelId,
-              topic: description,
-            });
-          } catch (topicError) {
-            console.error("Failed to set topic:", topicError);
-          }
-        }
 
         // メンバー招待（Admin API使用）
         const inviteWithAdminApi = async (

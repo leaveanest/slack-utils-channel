@@ -13,7 +13,7 @@
     "channel_create_failed": "チャネルの作成に失敗しました: {error}",
     "invalid_channel_name": "無効なチャネル名です: {name}",
     "member_invite_failed": "メンバーの招待に失敗しました: {error}",
-    "channel_topic_set_failed": "チャネルトピックの設定に失敗しました: {error}",
+    "channel_purpose_set_failed": "チャネル説明の設定に失敗しました: {error}",
     "missing_team_id": "Enterprise Grid環境ではTeam IDが必要です",
     "channel_info_failed": "チャネル情報の取得に失敗しました: {error}",
     "missing_notification_channel": "通知チャネルIDが必要です",

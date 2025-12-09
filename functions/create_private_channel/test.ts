@@ -11,9 +11,11 @@ type ConversationsCreate = SlackAPIClient["conversations"]["create"];
 type ConversationsCreateArgs = Parameters<ConversationsCreate>[0];
 type ConversationsCreateResult = Awaited<ReturnType<ConversationsCreate>>;
 
-type ConversationsSetTopic = SlackAPIClient["conversations"]["setTopic"];
-type ConversationsSetTopicArgs = Parameters<ConversationsSetTopic>[0];
-type ConversationsSetTopicResult = Awaited<ReturnType<ConversationsSetTopic>>;
+type ConversationsSetPurpose = SlackAPIClient["conversations"]["setPurpose"];
+type ConversationsSetPurposeArgs = Parameters<ConversationsSetPurpose>[0];
+type ConversationsSetPurposeResult = Awaited<
+  ReturnType<ConversationsSetPurpose>
+>;
 
 type ConversationsInvite = SlackAPIClient["conversations"]["invite"];
 type ConversationsInviteArgs = Parameters<ConversationsInvite>[0];
@@ -155,14 +157,14 @@ Deno.test({
             },
           } as unknown as ConversationsCreateResult);
         },
-        setTopic(
-          args: ConversationsSetTopicArgs,
-        ): Promise<ConversationsSetTopicResult> {
+        setPurpose(
+          args: ConversationsSetPurposeArgs,
+        ): Promise<ConversationsSetPurposeResult> {
           assertEquals(args!.channel, "C12345");
-          assertEquals(args!.topic, "Test description");
+          assertEquals(args!.purpose, "Test description");
           return Promise.resolve({
             ok: true,
-          } as unknown as ConversationsSetTopicResult);
+          } as unknown as ConversationsSetPurposeResult);
         },
       },
     } as unknown as SlackAPIClient;
@@ -248,14 +250,14 @@ Deno.test({
             },
           } as unknown as ConversationsCreateResult);
         },
-        setTopic(
-          args: ConversationsSetTopicArgs,
-        ): Promise<ConversationsSetTopicResult> {
+        setPurpose(
+          args: ConversationsSetPurposeArgs,
+        ): Promise<ConversationsSetPurposeResult> {
           assertEquals(args!.channel, "C12345");
-          assertEquals(args!.topic, "Alpha project discussion");
+          assertEquals(args!.purpose, "Alpha project discussion");
           return Promise.resolve({
             ok: true,
-          } as unknown as ConversationsSetTopicResult);
+          } as unknown as ConversationsSetPurposeResult);
         },
         invite(
           args: ConversationsInviteArgs,
@@ -356,7 +358,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "トピック設定失敗時もチャンネル作成は成功する",
+  name: "説明設定失敗時もチャンネル作成は成功する",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
@@ -374,18 +376,18 @@ Deno.test({
             },
           } as unknown as ConversationsCreateResult);
         },
-        setTopic(
-          _args: ConversationsSetTopicArgs,
-        ): Promise<ConversationsSetTopicResult> {
+        setPurpose(
+          _args: ConversationsSetPurposeArgs,
+        ): Promise<ConversationsSetPurposeResult> {
           return Promise.resolve({
             ok: false,
-            error: "topic_too_long",
-          } as unknown as ConversationsSetTopicResult);
+            error: "purpose_too_long",
+          } as unknown as ConversationsSetPurposeResult);
         },
       },
     } as unknown as SlackAPIClient;
 
-    // トピック設定失敗でもチャンネル作成は成功する
+    // 説明設定失敗でもチャンネル作成は成功する
     const result = await createChannel(
       mockClient,
       "Test Channel",
