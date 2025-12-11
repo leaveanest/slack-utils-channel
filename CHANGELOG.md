@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.3.0...v1.4.0) (2025-12-11)
+
+
+### Features
+
+* **i18n:** Slack関数のタイトル・説明を日本語デフォルトに変更 ([d2a4445](https://github.com/leaveanest/slack-utils-channel/commit/d2a444513c9b5ddfc58dc1346fd05613c8ce1b0d))
+
 ## [1.3.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.2.1...v1.3.0) (2025-12-09)
 
 
