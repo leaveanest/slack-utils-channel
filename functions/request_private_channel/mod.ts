@@ -18,8 +18,7 @@ await initI18n();
 export const RequestPrivateChannelDefinition = DefineFunction({
   callback_id: "request_private_channel",
   title: "プライベートチャンネル申請",
-  description:
-    "管理者にプライベートチャンネル作成の承認を申請します",
+  description: "管理者にプライベートチャンネル作成の承認を申請します",
   source_file: "functions/request_private_channel/mod.ts",
   input_parameters: {
     properties: {

@@ -31,7 +31,8 @@ export const CreatePrivateChannelDefinition = DefineFunction({
       },
       is_private: {
         type: Schema.types.boolean,
-        description: "プライベートチャンネルとして作成するか（デフォルト: true）",
+        description:
+          "プライベートチャンネルとして作成するか（デフォルト: true）",
         default: true,
       },
       description: {

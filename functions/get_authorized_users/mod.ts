@@ -63,8 +63,7 @@ export const GetAuthorizedUsersDefinition = DefineFunction({
       },
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description:
-          "team_id取得用チャンネルID（Enterprise Grid用）",
+        description: "team_id取得用チャンネルID（Enterprise Grid用）",
       },
     },
     required: ["interactivity", "channel_id"],
