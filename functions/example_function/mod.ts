@@ -3,19 +3,16 @@ import type { SlackAPIClient } from "deno-slack-sdk/types.ts";
 import { t } from "../../lib/i18n/mod.ts";
 import { channelIdSchema } from "../../lib/validation/schemas.ts";
 
-// Load category from environment variable
-const CATEGORY = Deno.env.get("SLACK_CATEGORY") || "Channel";
-
 export const ExampleFunctionDefinition = DefineFunction({
   callback_id: "example_function",
-  title: `Fetch ${CATEGORY} Details`,
-  description: `Fetch ${CATEGORY.toLowerCase()} information`,
+  title: "チャンネル詳細取得",
+  description: "チャンネル情報を取得します",
   source_file: "functions/example_function/mod.ts",
   input_parameters: {
     properties: {
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: `Target ${CATEGORY.toLowerCase()} ID`,
+        description: "対象チャンネルID",
       },
     },
     required: ["channel_id"],
@@ -24,19 +21,19 @@ export const ExampleFunctionDefinition = DefineFunction({
     properties: {
       id: {
         type: Schema.types.string,
-        description: `${CATEGORY} ID`,
+        description: "チャンネルID",
       },
       name: {
         type: Schema.types.string,
-        description: `${CATEGORY} name`,
+        description: "チャンネル名",
       },
       is_archived: {
         type: Schema.types.boolean,
-        description: `Whether the ${CATEGORY.toLowerCase()} is archived`,
+        description: "アーカイブ済みかどうか",
       },
       member_count: {
         type: Schema.types.number,
-        description: `Number of members in the ${CATEGORY.toLowerCase()}`,
+        description: "メンバー数",
       },
     },
     required: ["id", "name", "is_archived", "member_count"],

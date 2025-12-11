@@ -17,38 +17,38 @@ await initI18n();
  */
 export const RequestPrivateChannelDefinition = DefineFunction({
   callback_id: "request_private_channel",
-  title: "Request Private Channel",
+  title: "プライベートチャンネル申請",
   description:
-    "Request approval for private channel creation from an administrator",
+    "管理者にプライベートチャンネル作成の承認を申請します",
   source_file: "functions/request_private_channel/mod.ts",
   input_parameters: {
     properties: {
       channel_name: {
         type: Schema.types.string,
-        description: "Name of the channel to create (without #)",
+        description: "作成するチャンネル名（#なし）",
       },
       requester_id: {
         type: Schema.slack.types.user_id,
-        description: "User ID of the requester",
+        description: "申請者のユーザーID",
       },
       approver_id: {
         type: Schema.slack.types.user_id,
-        description: "User ID of the administrator who will approve",
+        description: "承認する管理者のユーザーID",
       },
       approval_channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "Channel ID where approval request will be sent",
+        description: "承認リクエストを送信するチャンネルID",
       },
       description: {
         type: Schema.types.string,
-        description: "Channel description (optional)",
+        description: "チャンネルの説明（任意）",
       },
       initial_members: {
         type: Schema.types.array,
         items: {
           type: Schema.slack.types.user_id,
         },
-        description: "User IDs to invite to the channel (optional)",
+        description: "チャンネルに招待するユーザーID（任意）",
       },
     },
     required: [
@@ -62,19 +62,19 @@ export const RequestPrivateChannelDefinition = DefineFunction({
     properties: {
       approved: {
         type: Schema.types.boolean,
-        description: "Whether the request was approved",
+        description: "承認されたかどうか",
       },
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "ID of the created channel (if approved)",
+        description: "作成されたチャンネルのID（承認時）",
       },
       channel_name: {
         type: Schema.types.string,
-        description: "Name of the created channel (if approved)",
+        description: "作成されたチャンネル名（承認時）",
       },
       reviewer_id: {
         type: Schema.slack.types.user_id,
-        description: "ID of the user who reviewed the request",
+        description: "レビューしたユーザーのID",
       },
     },
     required: ["approved", "reviewer_id"],

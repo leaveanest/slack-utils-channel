@@ -9,41 +9,41 @@ import { z } from "zod";
 
 export const CreatePrivateChannelDefinition = DefineFunction({
   callback_id: "create_private_channel",
-  title: "Create Channel",
+  title: "チャンネル作成",
   description:
-    "Create a new channel (public or private) with optional initial members",
+    "新しいチャンネル（パブリックまたはプライベート）を作成します。初期メンバーを追加できます",
   source_file: "functions/create_private_channel/mod.ts",
   input_parameters: {
     properties: {
       channel_name: {
         type: Schema.types.string,
-        description: "Name of the channel to create (without #)",
+        description: "作成するチャンネル名（#なし）",
       },
       creator_id: {
         type: Schema.slack.types.user_id,
         description:
-          "User ID of the channel creator (required for workspace apps)",
+          "チャンネル作成者のユーザーID（ワークスペースアプリでは必須）",
       },
       notification_channel_id: {
         type: Schema.slack.types.channel_id,
         description:
-          "Channel ID where shortcut was triggered (used to get workspace team_id)",
+          "ショートカットがトリガーされたチャンネルID（team_id取得用）",
       },
       is_private: {
         type: Schema.types.boolean,
-        description: "Whether to create a private channel (default: true)",
+        description: "プライベートチャンネルとして作成するか（デフォルト: true）",
         default: true,
       },
       description: {
         type: Schema.types.string,
-        description: "Channel description (optional)",
+        description: "チャンネルの説明（任意）",
       },
       initial_members: {
         type: Schema.types.array,
         items: {
           type: Schema.slack.types.user_id,
         },
-        description: "User IDs to invite to the channel (optional)",
+        description: "チャンネルに招待するユーザーID（任意）",
       },
     },
     required: ["channel_name", "creator_id", "notification_channel_id"],
@@ -52,15 +52,15 @@ export const CreatePrivateChannelDefinition = DefineFunction({
     properties: {
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "ID of the created channel",
+        description: "作成されたチャンネルのID",
       },
       channel_name: {
         type: Schema.types.string,
-        description: "Name of the created channel",
+        description: "作成されたチャンネル名",
       },
       member_count: {
         type: Schema.types.number,
-        description: "Number of initial members (including bot)",
+        description: "初期メンバー数（Botを含む）",
       },
     },
     required: ["channel_id", "channel_name", "member_count"],
