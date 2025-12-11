@@ -29,30 +29,30 @@ interface AuthorizedUser {
  */
 export const ShowPrivateChannelFormDefinition = DefineFunction({
   callback_id: "show_private_channel_form",
-  title: "Show Private Channel Request Form",
+  title: "プライベートチャンネル申請フォーム表示",
   description:
-    "Display a form for private channel creation with filtered approver list",
+    "承認者を選択してプライベートチャンネルを申請するフォームを表示します",
   source_file: "functions/show_private_channel_form/mod.ts",
   input_parameters: {
     properties: {
       interactivity: {
         type: Schema.slack.types.interactivity,
-        description: "Interactivity context for opening the modal",
+        description: "モーダルを開くためのインタラクティブコンテキスト",
       },
       user_id: {
         type: Schema.slack.types.user_id,
-        description: "User ID of the requester",
+        description: "申請者のユーザーID",
       },
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "Channel where the request was made",
+        description: "リクエストが行われたチャンネル",
       },
       authorized_users: {
         type: Schema.types.array,
         items: {
           type: AuthorizedUserType,
         },
-        description: "List of users authorized to approve requests",
+        description: "承認権限を持つユーザー一覧",
       },
     },
     required: ["interactivity", "user_id", "channel_id", "authorized_users"],
@@ -61,19 +61,19 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
     properties: {
       approved: {
         type: Schema.types.boolean,
-        description: "Whether the request was approved",
+        description: "承認されたかどうか",
       },
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "ID of the created channel (if approved)",
+        description: "作成されたチャンネルのID（承認時）",
       },
       channel_name: {
         type: Schema.types.string,
-        description: "Name of the created channel (if approved)",
+        description: "作成されたチャンネル名（承認時）",
       },
       reviewer_id: {
         type: Schema.slack.types.user_id,
-        description: "ID of the user who reviewed the request",
+        description: "レビューしたユーザーのID",
       },
     },
     required: ["approved", "reviewer_id"],

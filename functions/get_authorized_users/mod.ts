@@ -51,20 +51,19 @@ interface AdminUsersListResponse {
  */
 export const GetAuthorizedUsersDefinition = DefineFunction({
   callback_id: "get_authorized_users",
-  title: "Get Authorized Users",
+  title: "承認権限ユーザー取得",
   description:
-    "Get users who have permission to create private channels (admins and owners)",
+    "プライベートチャンネル作成権限を持つユーザー（管理者とオーナー）を取得します",
   source_file: "functions/get_authorized_users/mod.ts",
   input_parameters: {
     properties: {
       interactivity: {
         type: Schema.slack.types.interactivity,
-        description: "Interactivity context (passed through to output)",
+        description: "インタラクティブコンテキスト（出力に渡されます）",
       },
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description:
-          "Channel ID to get workspace team_id (for Enterprise Grid)",
+        description: "team_id取得用チャンネルID（Enterprise Grid用）",
       },
     },
     required: ["interactivity", "channel_id"],
@@ -73,23 +72,23 @@ export const GetAuthorizedUsersDefinition = DefineFunction({
     properties: {
       interactivity: {
         type: Schema.slack.types.interactivity,
-        description: "Interactivity context (passed through from input)",
+        description: "インタラクティブコンテキスト（入力から引き継ぎ）",
       },
       authorized_users: {
         type: Schema.types.array,
         items: {
           type: AuthorizedUserType,
         },
-        description: "List of users with private channel creation permission",
+        description: "プライベートチャンネル作成権限を持つユーザー一覧",
       },
       user_ids: {
         type: Schema.types.array,
         items: { type: Schema.slack.types.user_id },
-        description: "List of user IDs with permission",
+        description: "権限を持つユーザーのID一覧",
       },
       count: {
         type: Schema.types.integer,
-        description: "Number of authorized users",
+        description: "権限ユーザー数",
       },
     },
     required: ["interactivity", "authorized_users", "user_ids", "count"],

@@ -5,14 +5,14 @@ import { channelIdSchema } from "../../lib/validation/schemas.ts";
 
 export const GetChannelMembersDefinition = DefineFunction({
   callback_id: "get_channel_members",
-  title: "Get Channel Members",
-  description: "Retrieve list of members in a channel",
+  title: "チャンネルメンバー取得",
+  description: "チャンネルのメンバー一覧を取得します",
   source_file: "functions/get_channel_members/mod.ts",
   input_parameters: {
     properties: {
       channel_id: {
         type: Schema.slack.types.channel_id,
-        description: "Target channel ID",
+        description: "対象チャンネルID",
       },
     },
     required: ["channel_id"],
@@ -24,11 +24,11 @@ export const GetChannelMembersDefinition = DefineFunction({
         items: {
           type: Schema.types.string,
         },
-        description: "Array of user IDs in the channel",
+        description: "チャンネル内のユーザーID一覧",
       },
       member_count: {
         type: Schema.types.number,
-        description: "Total number of members",
+        description: "メンバー総数",
       },
     },
     required: ["member_ids", "member_count"],
