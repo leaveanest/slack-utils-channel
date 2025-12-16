@@ -3,11 +3,11 @@ import type { SlackAPIClient } from "deno-slack-sdk/types.ts";
 import { t } from "../../lib/i18n/mod.ts";
 import { channelIdSchema } from "../../lib/validation/schemas.ts";
 
-export const ExampleFunctionDefinition = DefineFunction({
-  callback_id: "example_function",
+export const GetChannelInfoDefinition = DefineFunction({
+  callback_id: "get_channel_info",
   title: "チャンネル詳細取得",
   description: "チャンネル情報を取得します",
-  source_file: "functions/example_function/mod.ts",
+  source_file: "functions/get_channel_info/mod.ts",
   input_parameters: {
     properties: {
       channel_id: {
@@ -100,7 +100,7 @@ export async function retrieveChannelSummary(
 }
 
 export default SlackFunction(
-  ExampleFunctionDefinition,
+  GetChannelInfoDefinition,
   async ({ inputs, client }) => {
     try {
       // Zodバリデーション
