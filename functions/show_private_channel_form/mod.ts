@@ -54,8 +54,12 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
         },
         description: "承認権限を持つユーザー一覧",
       },
+      is_everyone_allowed: {
+        type: Schema.types.boolean,
+        description: "全員がプライベートチャンネルを作成可能かどうか",
+      },
     },
-    required: ["interactivity", "user_id", "channel_id", "authorized_users"],
+    required: ["interactivity", "user_id", "channel_id", "authorized_users", "is_everyone_allowed"],
   },
   output_parameters: {
     properties: {
@@ -164,6 +168,34 @@ async function getWorkspaceTeamId(
 }
 
 /**
+ * Admin API を使用してメンバーを招待します
+ */
+async function inviteMembersWithAdminApi(
+  adminToken: string,
+  channelId: string,
+  userIds: string[],
+): Promise<{ ok: boolean; error?: string }> {
+  if (userIds.length === 0) {
+    return { ok: true };
+  }
+  const response = await fetch(
+    "https://slack.com/api/admin.conversations.invite",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${adminToken}`,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify({
+        channel_id: channelId,
+        user_ids: userIds.join(","),
+      }),
+    },
+  );
+  return await response.json();
+}
+
+/**
  * 承認者選択のオプションを生成します
  */
 function buildApproverOptions(authorizedUsers: AuthorizedUser[]) {
@@ -195,6 +227,7 @@ export default SlackFunction(
       const authorizedUsers = inputs.authorized_users as AuthorizedUser[];
       const channelId = inputs.channel_id as string;
       const userId = inputs.user_id as string;
+      const isEveryoneAllowed = inputs.is_everyone_allowed as boolean;
 
       // 権限ユーザーがいない場合はエラー
       if (!authorizedUsers || authorizedUsers.length === 0) {
@@ -234,6 +267,7 @@ export default SlackFunction(
           private_metadata: JSON.stringify({
             channel_id: channelId,
             user_id: userId,
+            is_everyone_allowed: isEveryoneAllowed,
           }),
           blocks: [
             {
@@ -342,13 +376,14 @@ export default SlackFunction(
   // モーダル送信時のハンドラー
   .addViewSubmissionHandler(
     ["private_channel_request_modal"],
-    async ({ view, body: _body, client }) => {
+    async ({ view, body: _body, client, env }) => {
       console.log("=== Modal submitted ===");
 
       // private_metadataから情報を取得
       const metadata = JSON.parse(view.private_metadata || "{}");
       const approvalChannelId = metadata.channel_id;
       const requesterId = metadata.user_id;
+      const isEveryoneAllowed = metadata.is_everyone_allowed === true;
 
       // フォーム入力値を取得
       const values = view.state.values;
@@ -367,6 +402,7 @@ export default SlackFunction(
         approverId,
         description,
         initialMembersCount: initialMembers.length,
+        isEveryoneAllowed,
       });
 
       try {
@@ -394,7 +430,100 @@ export default SlackFunction(
 
         const descriptionText = description || t("messages.no_description");
 
-        // 承認リクエストメッセージを送信
+        // 全員がプライベートチャンネルを作成可能な場合は、承認なしで直接作成
+        if (isEveryoneAllowed) {
+          console.log(
+            "Everyone is allowed to create private channels - creating directly",
+          );
+
+          const adminToken = env.SLACK_ADMIN_USER_TOKEN;
+          if (!adminToken) {
+            throw new Error(t("errors.missing_admin_token"));
+          }
+
+          const teamId = await getWorkspaceTeamId(client, approvalChannelId);
+
+          console.log(t("logs.creating_channel_admin_api", { name: normalizedName }));
+
+          // Admin API でプライベートチャンネルを作成
+          const createResult = await createPrivateChannelWithAdminApi(
+            adminToken,
+            normalizedName,
+            teamId,
+            description,
+          );
+
+          if (!createResult.ok) {
+            throw new Error(
+              t("errors.channel_create_failed", {
+                error: createResult.error || t("errors.unknown_error"),
+              }),
+            );
+          }
+
+          const newChannelId = createResult.channel_id!;
+          console.log(t("logs.channel_created_private", { id: newChannelId }));
+
+          // メンバー招待（Admin API使用）
+          const allMembersToInvite = [requesterId];
+          // 承認者をチャンネルに参加させる（承認不要でも必ず参加）
+          if (validatedApproverId && !allMembersToInvite.includes(validatedApproverId)) {
+            allMembersToInvite.push(validatedApproverId);
+          }
+          for (const member of initialMembers) {
+            if (!allMembersToInvite.includes(member)) {
+              allMembersToInvite.push(member);
+            }
+          }
+
+          console.log(t("logs.inviting_members", { count: allMembersToInvite.length }));
+          try {
+            const inviteResult = await inviteMembersWithAdminApi(
+              adminToken,
+              newChannelId,
+              allMembersToInvite,
+            );
+            if (!inviteResult.ok) {
+              console.error("Failed to invite members:", inviteResult.error);
+            }
+          } catch (inviteError) {
+            console.error("Failed to invite members:", inviteError);
+          }
+
+          // 作成完了メッセージを送信
+          await client.chat.postMessage({
+            channel: approvalChannelId,
+            text: t("messages.channel_created_directly", { channel: normalizedName }),
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: t("messages.channel_created_directly_details", {
+                    channel: normalizedName,
+                    channel_id: newChannelId,
+                    requester: requesterId,
+                    participant: validatedApproverId,
+                  }),
+                },
+              },
+              {
+                type: "context",
+                elements: [
+                  {
+                    type: "mrkdwn",
+                    text: `${t("messages.created_at", { time: new Date().toISOString() })}`,
+                  },
+                ],
+              },
+            ],
+          });
+
+          // モーダルを閉じる
+          return;
+        }
+
+        // 承認が必要な場合は承認リクエストメッセージを送信
         await client.chat.postMessage({
           channel: approvalChannelId,
           text: t("messages.approval_request_title", {
