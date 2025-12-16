@@ -59,7 +59,13 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
         description: "全員がプライベートチャンネルを作成可能かどうか",
       },
     },
-    required: ["interactivity", "user_id", "channel_id", "authorized_users", "is_everyone_allowed"],
+    required: [
+      "interactivity",
+      "user_id",
+      "channel_id",
+      "authorized_users",
+      "is_everyone_allowed",
+    ],
   },
   output_parameters: {
     properties: {
@@ -443,7 +449,9 @@ export default SlackFunction(
 
           const teamId = await getWorkspaceTeamId(client, approvalChannelId);
 
-          console.log(t("logs.creating_channel_admin_api", { name: normalizedName }));
+          console.log(
+            t("logs.creating_channel_admin_api", { name: normalizedName }),
+          );
 
           // Admin API でプライベートチャンネルを作成
           const createResult = await createPrivateChannelWithAdminApi(
@@ -467,7 +475,10 @@ export default SlackFunction(
           // メンバー招待（Admin API使用）
           const allMembersToInvite = [requesterId];
           // 承認者をチャンネルに参加させる（承認不要でも必ず参加）
-          if (validatedApproverId && !allMembersToInvite.includes(validatedApproverId)) {
+          if (
+            validatedApproverId &&
+            !allMembersToInvite.includes(validatedApproverId)
+          ) {
             allMembersToInvite.push(validatedApproverId);
           }
           for (const member of initialMembers) {
@@ -476,7 +487,9 @@ export default SlackFunction(
             }
           }
 
-          console.log(t("logs.inviting_members", { count: allMembersToInvite.length }));
+          console.log(
+            t("logs.inviting_members", { count: allMembersToInvite.length }),
+          );
           try {
             const inviteResult = await inviteMembersWithAdminApi(
               adminToken,
@@ -493,7 +506,9 @@ export default SlackFunction(
           // 作成完了メッセージを送信
           await client.chat.postMessage({
             channel: approvalChannelId,
-            text: t("messages.channel_created_directly", { channel: normalizedName }),
+            text: t("messages.channel_created_directly", {
+              channel: normalizedName,
+            }),
             blocks: [
               {
                 type: "section",
@@ -512,7 +527,11 @@ export default SlackFunction(
                 elements: [
                   {
                     type: "mrkdwn",
-                    text: `${t("messages.created_at", { time: new Date().toISOString() })}`,
+                    text: `${
+                      t("messages.created_at", {
+                        time: new Date().toISOString(),
+                      })
+                    }`,
                   },
                 ],
               },

@@ -29,8 +29,7 @@ interface AdminTeamsSettingsInfoResponse {
 export const CheckPrivateChannelPermissionsDefinition = DefineFunction({
   callback_id: "check_private_channel_permissions",
   title: "プライベートチャンネル作成権限確認",
-  description:
-    "ワークスペースのプライベートチャンネル作成権限設定を確認します",
+  description: "ワークスペースのプライベートチャンネル作成権限設定を確認します",
   source_file: "functions/check_private_channel_permissions/mod.ts",
   input_parameters: {
     properties: {
@@ -61,7 +60,11 @@ export const CheckPrivateChannelPermissionsDefinition = DefineFunction({
         description: "全員がプライベートチャンネルを作成可能かどうか",
       },
     },
-    required: ["interactivity", "who_can_create_private_channels", "is_everyone_allowed"],
+    required: [
+      "interactivity",
+      "who_can_create_private_channels",
+      "is_everyone_allowed",
+    ],
   },
 });
 
@@ -138,8 +141,8 @@ export async function getTeamSettings(
   console.log("admin.teams.settings.info response:", {
     ok: result.ok,
     error: result.error,
-    who_can_create_private_channels:
-      result.team?.who_can_create_private_channels,
+    who_can_create_private_channels: result.team
+      ?.who_can_create_private_channels,
   });
 
   if (!result.ok) {
