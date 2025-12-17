@@ -1,11 +1,11 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { z } from "zod";
 import { initI18n, t } from "../../lib/i18n/mod.ts";
+import { AuthorizedUserType } from "../../lib/types/authorized_user.ts";
 import {
   nonEmptyStringSchema,
   userIdSchema,
 } from "../../lib/validation/schemas.ts";
-import { AuthorizedUserType } from "../../lib/types/authorized_user.ts";
 
 // i18nを初期化
 await initI18n();
