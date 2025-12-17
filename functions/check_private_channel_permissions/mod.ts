@@ -106,8 +106,12 @@ async function getWorkspaceTeamId(
  *
  * @param adminToken - 管理者のユーザートークン（xoxp-...）
  * @param teamId - ワークスペースのチームID
- * @returns ワークスペース設定情報
- * @throws {Error} APIリクエストに失敗した場合
+ * @returns ワークスペース設定情報（APIエラー時はデフォルト値を返す）
+ *
+ * @remarks
+ * このAPIには `admin.teams:read` スコープが必要です。
+ * スコープがない場合やAPIエラーの場合は、安全側に倒して
+ * 「承認が必要」（admin）として扱います。
  *
  * @example
  * ```typescript
@@ -118,8 +122,8 @@ async function getWorkspaceTeamId(
 export async function getTeamSettings(
   adminToken: string,
   teamId: string,
-): Promise<{ who_can_create_private_channels: string }> {
-  console.log(t("logs.fetching_team_settings", { teamId }));
+): Promise<{ who_can_create_private_channels: string; api_error?: string }> {
+  console.log(`Fetching team settings for team: ${teamId}`);
 
   const params = new URLSearchParams({
     team_id: teamId,
@@ -145,12 +149,19 @@ export async function getTeamSettings(
       ?.who_can_create_private_channels,
   });
 
+  // APIエラーの場合はデフォルト値を返す（承認が必要として扱う）
   if (!result.ok) {
-    throw new Error(
-      t("errors.fetch_team_settings_failed", {
-        error: result.error ?? t("errors.unknown_error"),
-      }),
+    const errorMsg = result.error ?? "unknown_error";
+    console.warn(
+      `Failed to fetch team settings (${errorMsg}). ` +
+        `Falling back to default: approval required. ` +
+        `Note: This API requires 'admin.teams:read' scope on the user token.`,
     );
+
+    return {
+      who_can_create_private_channels: "admin", // 安全側に倒す
+      api_error: errorMsg,
+    };
   }
 
   // デフォルトは "admin"（制限あり）として扱う
@@ -172,25 +183,47 @@ export default SlackFunction(
       // 環境変数から Admin User Token を取得
       const adminToken = env.SLACK_ADMIN_USER_TOKEN;
 
+      let whoCanCreatePrivateChannels = "admin"; // デフォルト: 承認が必要
+      let isEveryoneAllowed = false;
+
       if (!adminToken) {
-        throw new Error(t("errors.missing_admin_token"));
+        // Admin Tokenがない場合はデフォルト値を使用
+        console.warn(
+          "SLACK_ADMIN_USER_TOKEN is not set. " +
+            "Falling back to default: approval required.",
+        );
+      } else {
+        try {
+          // ワークスペースの team_id を取得
+          const teamId = await getWorkspaceTeamId(client, channelId);
+
+          // Admin API でワークスペース設定を取得
+          const settings = await getTeamSettings(adminToken, teamId);
+
+          whoCanCreatePrivateChannels =
+            settings.who_can_create_private_channels;
+          isEveryoneAllowed = whoCanCreatePrivateChannels === "everyone";
+
+          if (settings.api_error) {
+            console.log(
+              `Note: API returned error '${settings.api_error}', using default permission setting.`,
+            );
+          }
+        } catch (apiError) {
+          // API呼び出しに失敗した場合もデフォルト値を使用
+          const errorMsg = apiError instanceof Error
+            ? apiError.message
+            : `${apiError}`;
+          console.warn(
+            `Failed to check permissions: ${errorMsg}. ` +
+              `Falling back to default: approval required.`,
+          );
+        }
       }
 
-      // ワークスペースの team_id を取得
-      const teamId = await getWorkspaceTeamId(client, channelId);
-
-      // Admin API でワークスペース設定を取得
-      const settings = await getTeamSettings(adminToken, teamId);
-
-      const whoCanCreatePrivateChannels =
-        settings.who_can_create_private_channels;
-      const isEveryoneAllowed = whoCanCreatePrivateChannels === "everyone";
-
       console.log(
-        t("logs.private_channel_permissions_checked", {
-          permission: whoCanCreatePrivateChannels,
-          isEveryoneAllowed: isEveryoneAllowed.toString(),
-        }),
+        `Private channel permissions checked: ${whoCanCreatePrivateChannels} ` +
+          `(everyone allowed: ${isEveryoneAllowed})`,
       );
 
       return {
