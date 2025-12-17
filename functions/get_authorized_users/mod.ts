@@ -57,23 +57,15 @@ export const GetAuthorizedUsersDefinition = DefineFunction({
   source_file: "functions/get_authorized_users/mod.ts",
   input_parameters: {
     properties: {
-      interactivity: {
-        type: Schema.slack.types.interactivity,
-        description: "インタラクティブコンテキスト（出力に渡されます）",
-      },
       channel_id: {
         type: Schema.slack.types.channel_id,
         description: "team_id取得用チャンネルID（Enterprise Grid用）",
       },
     },
-    required: ["interactivity", "channel_id"],
+    required: ["channel_id"],
   },
   output_parameters: {
     properties: {
-      interactivity: {
-        type: Schema.slack.types.interactivity,
-        description: "インタラクティブコンテキスト（入力から引き継ぎ）",
-      },
       authorized_users: {
         type: Schema.types.array,
         items: {
@@ -91,7 +83,7 @@ export const GetAuthorizedUsersDefinition = DefineFunction({
         description: "権限ユーザー数",
       },
     },
-    required: ["interactivity", "authorized_users", "user_ids", "count"],
+    required: ["authorized_users", "user_ids", "count"],
   },
 });
 
@@ -277,7 +269,6 @@ export default SlackFunction(
 
       return {
         outputs: {
-          interactivity: inputs.interactivity,
           authorized_users: authorizedUsers,
           user_ids: userIds,
           count: authorizedUsers.length,

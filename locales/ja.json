@@ -22,6 +22,8 @@
     "fetch_authorized_users_failed": "認可されたユーザーの取得に失敗しました: {error}",
     "no_authorized_users": "認可されたユーザーが見つかりません。ワークスペースに管理者またはオーナーがいることを確認してください。",
     "modal_open_failed": "フォームを開くことに失敗しました: {error}",
+    "modal_update_failed": "フォームの更新に失敗しました: {error}",
+    "view_id_not_found": "レスポンスにview_idが見つかりません",
     "not_authorized_approver": "⚠️ このリクエストを承認する権限がありません。<@{approver}>のみが承認または却下できます。",
     "validation": {
       "channel_id_empty": "チャネルIDは空にできません",
@@ -69,7 +71,10 @@
     "description_label": "説明",
     "description_placeholder": "このチャネルの目的は?",
     "initial_members_label": "初期メンバー",
-    "initial_members_placeholder": "招待するメンバーを選択してください"
+    "initial_members_placeholder": "招待するメンバーを選択してください",
+    "loading_title": "少々お待ちください...",
+    "loading_message": "⏳ *フォームを準備中...*\n\nプライベートチャンネルリクエストフォームを準備しています。",
+    "loading_hint": "数秒お待ちください。"
   },
   "logs": {
     "starting": "ワークフローを開始しています...",

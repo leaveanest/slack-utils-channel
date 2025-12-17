@@ -22,6 +22,8 @@
     "fetch_authorized_users_failed": "Failed to fetch authorized users: {error}",
     "no_authorized_users": "No authorized users found. Please ensure there are admins or owners in the workspace.",
     "modal_open_failed": "Failed to open the form: {error}",
+    "modal_update_failed": "Failed to update the form: {error}",
+    "view_id_not_found": "View ID not found in response",
     "not_authorized_approver": "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
     "validation": {
       "channel_id_empty": "Channel ID cannot be empty",
@@ -69,7 +71,10 @@
     "description_label": "Description",
     "description_placeholder": "What is this channel for?",
     "initial_members_label": "Initial Members",
-    "initial_members_placeholder": "Select members to invite"
+    "initial_members_placeholder": "Select members to invite",
+    "loading_title": "Please wait...",
+    "loading_message": "⏳ *Loading form...*\n\nPreparing your private channel request form.",
+    "loading_hint": "This may take a few seconds."
   },
   "logs": {
     "starting": "Starting workflow...",

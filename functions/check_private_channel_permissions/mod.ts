@@ -33,23 +33,15 @@ export const CheckPrivateChannelPermissionsDefinition = DefineFunction({
   source_file: "functions/check_private_channel_permissions/mod.ts",
   input_parameters: {
     properties: {
-      interactivity: {
-        type: Schema.slack.types.interactivity,
-        description: "インタラクティブコンテキスト（出力に渡されます）",
-      },
       channel_id: {
         type: Schema.slack.types.channel_id,
         description: "team_id取得用チャンネルID（Enterprise Grid用）",
       },
     },
-    required: ["interactivity", "channel_id"],
+    required: ["channel_id"],
   },
   output_parameters: {
     properties: {
-      interactivity: {
-        type: Schema.slack.types.interactivity,
-        description: "インタラクティブコンテキスト（入力から引き継ぎ）",
-      },
       who_can_create_private_channels: {
         type: Schema.types.string,
         description:
@@ -61,7 +53,6 @@ export const CheckPrivateChannelPermissionsDefinition = DefineFunction({
       },
     },
     required: [
-      "interactivity",
       "who_can_create_private_channels",
       "is_everyone_allowed",
     ],
@@ -228,7 +219,6 @@ export default SlackFunction(
 
       return {
         outputs: {
-          interactivity: inputs.interactivity,
           who_can_create_private_channels: whoCanCreatePrivateChannels,
           is_everyone_allowed: isEveryoneAllowed,
         },

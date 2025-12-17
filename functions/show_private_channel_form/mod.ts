@@ -35,9 +35,10 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
   source_file: "functions/show_private_channel_form/mod.ts",
   input_parameters: {
     properties: {
-      interactivity: {
-        type: Schema.slack.types.interactivity,
-        description: "モーダルを開くためのインタラクティブコンテキスト",
+      view_id: {
+        type: Schema.types.string,
+        description:
+          "更新対象のモーダルview_id（ローディングモーダルから渡される）",
       },
       user_id: {
         type: Schema.slack.types.user_id,
@@ -60,7 +61,7 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
       },
     },
     required: [
-      "interactivity",
+      "view_id",
       "user_id",
       "channel_id",
       "authorized_users",
@@ -234,6 +235,7 @@ export default SlackFunction(
       const channelId = inputs.channel_id as string;
       const userId = inputs.user_id as string;
       const isEveryoneAllowed = inputs.is_everyone_allowed as boolean;
+      const viewId = inputs.view_id as string;
 
       // 権限ユーザーがいない場合はエラー
       if (!authorizedUsers || authorizedUsers.length === 0) {
@@ -249,9 +251,9 @@ export default SlackFunction(
         }),
       );
 
-      // カスタムモーダルを開く
-      const viewResult = await client.views.open({
-        interactivity_pointer: inputs.interactivity.interactivity_pointer,
+      // ローディングモーダルを本来のフォームに更新
+      const viewResult = await client.views.update({
+        view_id: viewId,
         view: {
           type: "modal",
           callback_id: "private_channel_request_modal",
@@ -362,7 +364,7 @@ export default SlackFunction(
 
       if (!viewResult.ok) {
         throw new Error(
-          t("errors.modal_open_failed", {
+          t("errors.modal_update_failed", {
             error: viewResult.error ?? t("errors.unknown_error"),
           }),
         );
