@@ -47,6 +47,8 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       no_authorized_users:
         "No authorized users found. Please ensure there are admins or owners in the workspace.",
       modal_open_failed: "Failed to open the form: {error}",
+      modal_update_failed: "Failed to update the form: {error}",
+      view_id_not_found: "View ID not found in response",
       not_authorized_approver:
         "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
       validation: {
@@ -101,6 +103,10 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       description_placeholder: "What is this channel for?",
       initial_members_label: "Initial Members",
       initial_members_placeholder: "Select members to invite",
+      loading_title: "Please wait...",
+      loading_message:
+        "⏳ *Loading form...*\n\nPreparing your private channel request form.",
+      loading_hint: "This may take a few seconds.",
     },
     logs: {
       starting: "Starting workflow...",
@@ -157,6 +163,8 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       no_authorized_users:
         "認可ユーザーが見つかりません。ワークスペースに管理者またはオーナーがいることを確認してください。",
       modal_open_failed: "フォームを開くことができませんでした: {error}",
+      modal_update_failed: "フォームの更新に失敗しました: {error}",
+      view_id_not_found: "レスポンスにview_idが見つかりません",
       not_authorized_approver:
         "⚠️ このリクエストを承認する権限がありません。<@{approver}> のみが承認または拒否できます。",
       validation: {
@@ -212,6 +220,10 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       description_placeholder: "このチャンネルの目的は？",
       initial_members_label: "初期メンバー",
       initial_members_placeholder: "招待するメンバーを選択してください",
+      loading_title: "少々お待ちください...",
+      loading_message:
+        "⏳ *フォームを準備中...*\n\nプライベートチャンネルリクエストフォームを準備しています。",
+      loading_hint: "数秒お待ちください。",
     },
     logs: {
       starting: "ワークフローを開始しています...",
