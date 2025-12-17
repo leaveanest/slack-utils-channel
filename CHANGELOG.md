@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.4.0...v1.5.0) (2025-12-17)
+
+
+### Features
+
+* getTeamSettings関数のエラーハンドリングを改善 ([34f133f](https://github.com/leaveanest/slack-utils-channel/commit/34f133faf63a6e6beb3db49cb74cc3a490336e85))
+* **i18n:** Add new error and loading messages for forms ([db72a94](https://github.com/leaveanest/slack-utils-channel/commit/db72a9455c33997a7cd8fb6fd0fd02a370ccb509))
+* プライベートチャンネル作成権限確認機能を追加 ([ee04f2f](https://github.com/leaveanest/slack-utils-channel/commit/ee04f2ff00220142248556d4ca86931ebf11545d))
+* ローディングモーダル表示機能を追加 ([85a3ed4](https://github.com/leaveanest/slack-utils-channel/commit/85a3ed40e8f505f24eead2ba83cafc91f168f1b0))
+
+
+### Bug Fixes
+
+* Remove duplicate import of AuthorizedUserType in show_private_channel_form ([f6da9b7](https://github.com/leaveanest/slack-utils-channel/commit/f6da9b7e936271db601d353e342dfbcd7e0a3cc8))
+
 ## [1.4.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.3.0...v1.4.0) (2025-12-11)
 
 
