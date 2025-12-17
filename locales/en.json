@@ -18,9 +18,12 @@
     "channel_info_failed": "Failed to get channel info: {error}",
     "missing_notification_channel": "Notification channel ID is required",
     "missing_admin_token": "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
+    "fetch_team_settings_failed": "Failed to fetch team settings: {error}",
     "fetch_authorized_users_failed": "Failed to fetch authorized users: {error}",
     "no_authorized_users": "No authorized users found. Please ensure there are admins or owners in the workspace.",
     "modal_open_failed": "Failed to open the form: {error}",
+    "modal_update_failed": "Failed to update the form: {error}",
+    "view_id_not_found": "View ID not found in response",
     "not_authorized_approver": "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
     "validation": {
       "channel_id_empty": "Channel ID cannot be empty",
@@ -50,7 +53,10 @@
     "channel_denied": "❌ *Private channel request denied*\n\n*Channel:* `#{channel}`\n*Denied by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
     "channel_creation_failed": "⚠️ *Failed to create private channel*\n\n*Channel:* `#{channel}`\n*Error:* {error}",
     "approved_at": "Approved at {time}",
-    "denied_at": "Denied at {time}"
+    "denied_at": "Denied at {time}",
+    "created_at": "Created at {time}",
+    "channel_created_directly": "Private channel #{channel} created",
+    "channel_created_directly_details": "🔒 *Private channel created!*\n\n*Channel:* <#{channel_id}|{channel}>\n*Created by:* <@{requester}>\n*Participant:* <@{participant}>"
   },
   "form": {
     "title": "Request Private Channel",
@@ -65,7 +71,10 @@
     "description_label": "Description",
     "description_placeholder": "What is this channel for?",
     "initial_members_label": "Initial Members",
-    "initial_members_placeholder": "Select members to invite"
+    "initial_members_placeholder": "Select members to invite",
+    "loading_title": "Please wait...",
+    "loading_message": "⏳ *Loading form...*\n\nPreparing your private channel request form.",
+    "loading_hint": "This may take a few seconds."
   },
   "logs": {
     "starting": "Starting workflow...",
@@ -81,6 +90,8 @@
     "approval_request_sent": "Approval request sent successfully",
     "creating_channel_after_approval": "Creating channel '{name}' after approval",
     "members_invited": "{count} members invited to the channel",
+    "fetching_team_settings": "Fetching team settings for team: {teamId}",
+    "private_channel_permissions_checked": "Private channel permissions checked: {permission} (everyone allowed: {isEveryoneAllowed})",
     "fetching_authorized_users": "Fetching authorized users for team: {teamId}",
     "authorized_users_fetched": "Found {count} authorized users (admins/owners)",
     "opening_form_with_authorized_users": "Opening form with {count} authorized users",

@@ -18,9 +18,12 @@
     "channel_info_failed": "チャネル情報の取得に失敗しました: {error}",
     "missing_notification_channel": "通知チャネルIDが必要です",
     "missing_admin_token": "管理者ユーザートークン(SLACK_ADMIN_USER_TOKEN)が設定されていません",
+    "fetch_team_settings_failed": "チーム設定の取得に失敗しました: {error}",
     "fetch_authorized_users_failed": "認可されたユーザーの取得に失敗しました: {error}",
     "no_authorized_users": "認可されたユーザーが見つかりません。ワークスペースに管理者またはオーナーがいることを確認してください。",
     "modal_open_failed": "フォームを開くことに失敗しました: {error}",
+    "modal_update_failed": "フォームの更新に失敗しました: {error}",
+    "view_id_not_found": "レスポンスにview_idが見つかりません",
     "not_authorized_approver": "⚠️ このリクエストを承認する権限がありません。<@{approver}>のみが承認または却下できます。",
     "validation": {
       "channel_id_empty": "チャネルIDは空にできません",
@@ -50,7 +53,10 @@
     "channel_denied": "❌ *プライベートチャネルリクエストが却下されました*\n\n*チャネル:* `#{channel}`\n*却下者:* <@{reviewer}>\n*リクエスター:* <@{requester}>",
     "channel_creation_failed": "⚠️ *プライベートチャネルの作成に失敗しました*\n\n*チャネル:* `#{channel}`\n*エラー:* {error}",
     "approved_at": "{time}に承認されました",
-    "denied_at": "{time}に却下されました"
+    "denied_at": "{time}に却下されました",
+    "created_at": "{time}に作成されました",
+    "channel_created_directly": "プライベートチャンネル#{channel}が作成されました",
+    "channel_created_directly_details": "🔒 *プライベートチャンネルが作成されました!*\n\n*チャンネル:* <#{channel_id}|{channel}>\n*作成者:* <@{requester}>\n*参加者:* <@{participant}>"
   },
   "form": {
     "title": "プライベートチャネルをリクエスト",
@@ -65,7 +71,10 @@
     "description_label": "説明",
     "description_placeholder": "このチャネルの目的は?",
     "initial_members_label": "初期メンバー",
-    "initial_members_placeholder": "招待するメンバーを選択してください"
+    "initial_members_placeholder": "招待するメンバーを選択してください",
+    "loading_title": "少々お待ちください...",
+    "loading_message": "⏳ *フォームを準備中...*\n\nプライベートチャンネルリクエストフォームを準備しています。",
+    "loading_hint": "数秒お待ちください。"
   },
   "logs": {
     "starting": "ワークフローを開始しています...",
@@ -81,6 +90,8 @@
     "approval_request_sent": "承認リクエストが正常に送信されました",
     "creating_channel_after_approval": "承認後、チャネル'{name}'を作成中",
     "members_invited": "{count}人のメンバーがチャネルに招待されました",
+    "fetching_team_settings": "チーム{teamId}の設定を取得中...",
+    "private_channel_permissions_checked": "プライベートチャンネル作成権限を確認しました: {permission} (全員許可: {isEveryoneAllowed})",
     "fetching_authorized_users": "チーム{teamId}の認可されたユーザーを取得中...",
     "authorized_users_fetched": "{count}人の認可されたユーザー(管理者/オーナー)が見つかりました",
     "opening_form_with_authorized_users": "{count}人の認可されたユーザーでフォームを開く",
