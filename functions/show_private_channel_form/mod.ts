@@ -791,13 +791,32 @@ export default SlackFunction(
         const channelMessageTs = channelMessageResult.ts;
 
         // DMメッセージの情報を保存
-        const dmMessages: { user_id: string; ts: string }[] = [];
+        const dmMessages: {
+          channel_id: string;
+          user_id: string;
+          ts: string;
+        }[] = [];
 
         // 各承認者にDMを送信
         for (const approverId of approverIds) {
           try {
+            // DMチャンネルを開く
+            const dmOpenResult = await client.conversations.open({
+              users: approverId,
+            });
+
+            if (!dmOpenResult.ok || !dmOpenResult.channel?.id) {
+              console.error(
+                `Failed to open DM channel for ${approverId}:`,
+                dmOpenResult.error,
+              );
+              continue;
+            }
+
+            const dmChannelId = dmOpenResult.channel.id;
+
             const dmResult = await client.chat.postMessage({
-              channel: approverId,
+              channel: dmChannelId,
               text: t("messages.dm_approval_request_title", {
                 channel: normalizedName,
                 requester: requesterId,
@@ -822,7 +841,11 @@ export default SlackFunction(
             });
 
             if (dmResult.ok && dmResult.ts) {
-              dmMessages.push({ user_id: approverId, ts: dmResult.ts });
+              dmMessages.push({
+                channel_id: dmChannelId,
+                user_id: approverId,
+                ts: dmResult.ts,
+              });
             }
           } catch (dmError) {
             console.error(`Failed to send DM to ${approverId}:`, dmError);
@@ -858,7 +881,7 @@ export default SlackFunction(
         for (const dm of dmMessages) {
           try {
             await client.chat.update({
-              channel: dm.user_id,
+              channel: dm.channel_id,
               ts: dm.ts,
               blocks: buildApprovalRequestBlocks(
                 normalizedName,
@@ -915,7 +938,7 @@ export default SlackFunction(
       const initialMembers = requestData.initial_members || [];
       const approvalChannelId = requestData.approval_channel_id;
       const channelMessageTs = requestData.channel_message_ts;
-      const dmMessages: { user_id: string; ts: string }[] =
+      const dmMessages: { channel_id: string; user_id: string; ts: string }[] =
         requestData.dm_messages || [];
 
       // 承認者チェック: 選択された承認者のいずれかであること
@@ -1046,7 +1069,7 @@ export default SlackFunction(
         for (const dm of dmMessages) {
           try {
             await client.chat.update({
-              channel: dm.user_id,
+              channel: dm.channel_id,
               ts: dm.ts,
               blocks: approvedBlocks,
             });
@@ -1117,7 +1140,7 @@ export default SlackFunction(
       const approverIds: string[] = requestData.approver_ids || [];
       const approvalChannelId = requestData.approval_channel_id;
       const channelMessageTs = requestData.channel_message_ts;
-      const dmMessages: { user_id: string; ts: string }[] =
+      const dmMessages: { channel_id: string; user_id: string; ts: string }[] =
         requestData.dm_messages || [];
 
       // 承認者チェック
@@ -1164,7 +1187,7 @@ export default SlackFunction(
       for (const dm of dmMessages) {
         try {
           await client.chat.update({
-            channel: dm.user_id,
+            channel: dm.channel_id,
             ts: dm.ts,
             blocks: deniedBlocks,
           });

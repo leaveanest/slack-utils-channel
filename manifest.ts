@@ -45,5 +45,6 @@ export default Manifest({
     "groups:read", // プライベートチャンネル情報の読み取り
     "groups:write", // プライベートチャンネルの作成・管理
     "users:read", // ユーザー情報の読み取り
+    "im:write", // DMチャンネルを開く（conversations.open）
   ],
 });
