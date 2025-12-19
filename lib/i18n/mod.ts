@@ -42,6 +42,7 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       missing_notification_channel: "Notification channel ID is required",
       missing_admin_token:
         "Admin user token (SLACK_ADMIN_USER_TOKEN) is not configured",
+      fetch_team_settings_failed: "Failed to fetch team settings: {error}",
       fetch_authorized_users_failed:
         "Failed to fetch authorized users: {error}",
       no_authorized_users:
@@ -50,7 +51,10 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       modal_update_failed: "Failed to update the form: {error}",
       view_id_not_found: "View ID not found in response",
       not_authorized_approver:
-        "⚠️ You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
+        "You are not authorized to approve this request. Only <@{approver}> can approve or deny.",
+      not_authorized_approver_multiple:
+        "You are not authorized to approve this request. Only {approvers} can approve or deny.",
+      no_approver_selected: "Please select at least one approver.",
       validation: {
         channel_id_empty: "Channel ID cannot be empty",
         channel_id_format:
@@ -71,21 +75,28 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       members_invited: "{count} members invited to the channel",
       no_initial_members: "None",
       no_description: "No description",
-      approval_request_title: "📋 Private Channel Request: #{channel}",
-      approval_request_header: "🔒 Private Channel Creation Request",
+      approval_request_title: "Private Channel Request: #{channel}",
+      approval_request_header: "Private Channel Creation Request",
       approval_request_details:
         "*Requester:* <@{requester}>\n*Channel Name:* `#{channel}`\n*Description:* {description}\n*Initial Members:* {members}",
-      approve_button: "✅ Approve",
-      deny_button: "❌ Deny",
-      approval_context: "👤 Approval required from <@{approver}>",
+      approve_button: "Approve",
+      deny_button: "Deny",
+      approval_context: "Approval required from <@{approver}>",
+      approval_context_multiple: "Approval required from any of: {approvers}",
+      dm_approval_request_title:
+        "Private Channel Request: #{channel} from <@{requester}>",
       channel_approved:
-        "✅ *Private channel approved and created!*\n\n*Channel:* <#{channel_id}|{channel}>\n*Approved by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
+        "*Private channel approved and created!*\n\n*Channel:* <#{channel_id}|{channel}>\n*Approved by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
       channel_denied:
-        "❌ *Private channel request denied*\n\n*Channel:* `#{channel}`\n*Denied by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
+        "*Private channel request denied*\n\n*Channel:* `#{channel}`\n*Denied by:* <@{reviewer}>\n*Requested by:* <@{requester}>",
       channel_creation_failed:
-        "⚠️ *Failed to create private channel*\n\n*Channel:* `#{channel}`\n*Error:* {error}",
+        "*Failed to create private channel*\n\n*Channel:* `#{channel}`\n*Error:* {error}",
       approved_at: "Approved at {time}",
       denied_at: "Denied at {time}",
+      created_at: "Created at {time}",
+      channel_created_directly: "Private channel #{channel} created",
+      channel_created_directly_details:
+        "🔒 *Private channel created!*\n\n*Channel:* <#{channel_id}|{channel}>\n*Created by:* <@{requester}>\n*Participant:* <@{participant}>",
     },
     form: {
       title: "Request Private Channel",
@@ -99,6 +110,10 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       approver_placeholder: "Select an approver",
       approver_hint:
         "Only admins and owners can approve private channel creation.",
+      approver_label_multiple: "Approvers",
+      approver_placeholder_multiple: "Select approvers",
+      approver_hint_multiple:
+        "Select one or more admins/owners. Any of them can approve.",
       description_label: "Description",
       description_placeholder: "What is this channel for?",
       initial_members_label: "Initial Members",
@@ -125,6 +140,9 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       creating_channel_after_approval:
         "Creating channel '{name}' after approval",
       members_invited: "{count} members invited to the channel",
+      fetching_team_settings: "Fetching team settings for team: {teamId}",
+      private_channel_permissions_checked:
+        "Private channel permissions checked: {permission} (everyone allowed: {isEveryoneAllowed})",
       fetching_authorized_users: "Fetching authorized users for team: {teamId}",
       authorized_users_fetched:
         "Found {count} authorized users (admins/owners)",
@@ -140,69 +158,81 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       channel_not_found: "チャンネル情報の読み込みに失敗しました: {error}",
       unknown_error: "予期しないエラーが発生しました",
       invalid_input: "無効な入力が提供されました",
-      api_error: "APIリクエストに失敗しました: {message}",
-      api_call_failed: "API呼び出しに失敗しました: {error}",
+      api_error: "APIリクエストが失敗しました: {message}",
+      api_call_failed: "API呼び出しが失敗しました: {error}",
       data_not_found: "必要なデータが見つかりません",
       invalid_type:
-        "無効なタイプ: 期待されるのは {expected} で、取得されたのは {actual} です",
+        "無効な型です: {expected}が予想されていますが、{actual}が渡されました",
       empty_value: "値を空にすることはできません",
-      invalid_format: "{field} の形式が無効です: 期待されるのは {pattern} です",
+      invalid_format: "{field}の形式が無効です: {pattern}が予想されています",
       channel_members_fetch_failed:
         "チャンネルメンバーの取得に失敗しました: {error}",
       channel_create_failed: "チャンネルの作成に失敗しました: {error}",
       invalid_channel_name: "無効なチャンネル名です: {name}",
       member_invite_failed: "メンバーの招待に失敗しました: {error}",
-      channel_purpose_set_failed: "チャンネル説明の設定に失敗しました: {error}",
-      missing_team_id: "Enterprise Grid環境ではチームIDが必要です",
+      channel_purpose_set_failed: "チャンネルの説明設定に失敗しました: {error}",
+      missing_team_id: "Enterprise Grid環境ではTeam IDが必要です",
       channel_info_failed: "チャンネル情報の取得に失敗しました: {error}",
       missing_notification_channel: "通知チャンネルIDが必要です",
       missing_admin_token:
-        "管理者ユーザートークン（SLACK_ADMIN_USER_TOKEN）が設定されていません",
+        "管理者ユーザートークン(SLACK_ADMIN_USER_TOKEN)が設定されていません",
+      fetch_team_settings_failed: "チームの設定取得に失敗しました: {error}",
       fetch_authorized_users_failed:
-        "認可ユーザーの取得に失敗しました: {error}",
+        "認可されたユーザーの取得に失敗しました: {error}",
       no_authorized_users:
-        "認可ユーザーが見つかりません。ワークスペースに管理者またはオーナーがいることを確認してください。",
-      modal_open_failed: "フォームを開くことができませんでした: {error}",
+        "認可されたユーザーが見つかりません。ワークスペースに管理者またはオーナーがいることを確認してください。",
+      modal_open_failed: "フォームを開くのに失敗しました: {error}",
       modal_update_failed: "フォームの更新に失敗しました: {error}",
-      view_id_not_found: "レスポンスにview_idが見つかりません",
+      view_id_not_found: "レスポンスにView IDが見つかりません",
       not_authorized_approver:
-        "⚠️ このリクエストを承認する権限がありません。<@{approver}> のみが承認または拒否できます。",
+        "このリクエストを承認する権限がありません。<@{approver}>のみが承認または却下できます。",
+      not_authorized_approver_multiple:
+        "このリクエストを承認する権限がありません。{approvers}のみが承認または却下できます。",
+      no_approver_selected: "承認者を1人以上選択してください。",
       validation: {
         channel_id_empty: "チャンネルIDを空にすることはできません",
         channel_id_format:
-          "チャネルIDは'C'（パブリック）、'G'（プライベート）、または'D'（DM）で始まり、その後に大文字の英数字が続く必要があります",
+          "チャンネルIDは'C'(パブリック)、'G'(プライベート)、'D'(DM)で始まり、その後に大文字の英数字が続く必要があります",
         user_id_empty: "ユーザーIDを空にすることはできません",
         user_id_format:
-          "ユーザーIDは 'U' または 'W' で始まり、大文字の英数字が続く必要があります",
+          "ユーザーIDは'U'または'W'で始まり、その後に大文字の英数字が続く必要があります",
         value_empty: "値を空にすることはできません",
         channel_name_empty: "チャンネル名を空にすることはできません",
-        channel_name_too_long: "チャンネル名は80文字以内である必要があります",
+        channel_name_too_long: "チャンネル名は80文字以下にする必要があります",
       },
     },
     messages: {
-      channel_summary: "チャンネル: {name}, メンバー数: {count}",
+      channel_summary: "チャンネル: {name}、メンバー数: {count}",
       success: "操作が正常に完了しました",
-      processing: "リクエストを処理中...",
-      channel_created: "チャンネル '{name}' を作成しました",
-      members_invited: "{count} 人のメンバーをチャンネルに招待しました",
+      processing: "リクエストを処理中です...",
+      channel_created: "チャンネル'{name}'が正常に作成されました",
+      members_invited: "{count}名のメンバーをチャンネルに招待しました",
       no_initial_members: "なし",
       no_description: "説明なし",
-      approval_request_title:
-        "📋 プライベートチャンネル作成リクエスト: #{channel}",
-      approval_request_header: "🔒 プライベートチャンネル作成リクエスト",
+      approval_request_title: "プライベートチャンネルリクエスト: #{channel}",
+      approval_request_header: "プライベートチャンネル作成リクエスト",
       approval_request_details:
-        "*リクエスト者:* <@{requester}>\n*チャンネル名:* `#{channel}`\n*説明:* {description}\n*初期メンバー:* {members}",
-      approve_button: "✅ 承認",
-      deny_button: "❌ 拒否",
-      approval_context: "👤 <@{approver}> の承認が必要です",
+        "*リクエスター:* <@{requester}>\n*チャンネル名:* `#{channel}`\n*説明:* {description}\n*初期メンバー:* {members}",
+      approve_button: "承認",
+      deny_button: "却下",
+      approval_context: "<@{approver}>による承認が必要です",
+      approval_context_multiple:
+        "以下のいずれかによる承認が必要です: {approvers}",
+      dm_approval_request_title:
+        "プライベートチャンネルリクエスト: #{channel} (<@{requester}>より)",
       channel_approved:
-        "✅ *プライベートチャンネルが承認・作成されました！*\n\n*チャンネル:* <#{channel_id}|{channel}>\n*承認者:* <@{reviewer}>\n*リクエスト者:* <@{requester}>",
+        "*プライベートチャンネルが承認され、作成されました!*\n\n*チャンネル:* <#{channel_id}|{channel}>\n*承認者:* <@{reviewer}>\n*リクエスター:* <@{requester}>",
       channel_denied:
-        "❌ *プライベートチャンネルのリクエストが拒否されました*\n\n*チャンネル:* `#{channel}`\n*拒否者:* <@{reviewer}>\n*リクエスト者:* <@{requester}>",
+        "*プライベートチャンネルリクエストが却下されました*\n\n*チャンネル:* `#{channel}`\n*却下者:* <@{reviewer}>\n*リクエスター:* <@{requester}>",
       channel_creation_failed:
-        "⚠️ *プライベートチャンネルの作成に失敗しました*\n\n*チャンネル:* `#{channel}`\n*エラー:* {error}",
-      approved_at: "{time} に承認",
-      denied_at: "{time} に拒否",
+        "*プライベートチャンネルの作成に失敗しました*\n\n*チャンネル:* `#{channel}`\n*エラー:* {error}",
+      approved_at: "{time}に承認されました",
+      denied_at: "{time}に却下されました",
+      created_at: "{time}に作成されました",
+      channel_created_directly:
+        "プライベートチャンネル#{channel}が作成されました",
+      channel_created_directly_details:
+        "🔒 *プライベートチャンネルが作成されました!*\n\n*チャンネル:* <#{channel_id}|{channel}>\n*作成者:* <@{requester}>\n*参加者:* <@{participant}>",
     },
     form: {
       title: "プライベートチャンネルをリクエスト",
@@ -211,45 +241,51 @@ const EMBEDDED_LOCALES: Record<string, LocaleData> = {
       channel_name_label: "チャンネル名",
       channel_name_placeholder: "project-alpha",
       channel_name_hint:
-        "プライベートチャンネルの名前（#なし）。小文字に変換されます。",
+        "プライベートチャンネルの名前(#なし)。小文字に変換されます。",
       approver_label: "承認者",
-      approver_placeholder: "承認者を選択してください",
+      approver_placeholder: "承認者を選択",
       approver_hint:
         "管理者とオーナーのみがプライベートチャンネルの作成を承認できます。",
+      approver_label_multiple: "承認者",
+      approver_placeholder_multiple: "承認者を選択",
+      approver_hint_multiple:
+        "1人以上の管理者/オーナーを選択してください。いずれかの方が承認できます。",
       description_label: "説明",
-      description_placeholder: "このチャンネルの目的は？",
+      description_placeholder: "このチャンネルの目的は何ですか?",
       initial_members_label: "初期メンバー",
       initial_members_placeholder: "招待するメンバーを選択してください",
-      loading_title: "少々お待ちください...",
+      loading_title: "お待ちください...",
       loading_message:
-        "⏳ *フォームを準備中...*\n\nプライベートチャンネルリクエストフォームを準備しています。",
-      loading_hint: "数秒お待ちください。",
+        "⏳ *フォームを読み込み中...*\n\nプライベートチャンネルリクエストフォームを準備しています。",
+      loading_hint: "数秒かかる場合があります。",
     },
     logs: {
-      starting: "ワークフローを開始しています...",
+      starting: "ワークフローを開始中...",
       completed: "ワークフローが完了しました",
       loading_channel: "チャンネル情報を読み込み中...",
-      channel_loaded: "チャンネル {name} が正常に読み込まれました",
-      fetching_members: "チャンネル {channelId} のメンバーを取得中...",
+      channel_loaded: "チャンネル{name}が正常に読み込まれました",
+      fetching_members: "チャンネル{channelId}のメンバーを取得中...",
       creating_channel: "プライベートチャンネルを作成中: {name}",
-      channel_created_private:
-        "プライベートチャンネルを作成しました（ID: {id}）",
-      inviting_members: "{count} 人のメンバーを招待中...",
+      channel_created_private: "プライベートチャンネルがID{id}で作成されました",
+      inviting_members: "{count}名のメンバーを招待中...",
       creating_channel_admin_api:
-        "Admin API経由でプライベートチャンネルを作成中: {name}",
+        "Admin APIを使用してプライベートチャンネルを作成中: {name}",
       sending_approval_request:
-        "チャンネル '{channel}' の承認リクエストを '{approver}' に送信中",
-      approval_request_sent: "承認リクエストを送信しました",
-      creating_channel_after_approval: "承認後にチャンネル '{name}' を作成中",
-      members_invited: "{count} 人のメンバーを招待しました",
-      fetching_authorized_users: "チーム {teamId} の認可ユーザーを取得中です",
+        "チャンネル'{channel}'の承認リクエストを承認者'{approver}'に送信中",
+      approval_request_sent: "承認リクエストが正常に送信されました",
+      creating_channel_after_approval: "承認後、チャンネル'{name}'を作成中",
+      members_invited: "{count}名のメンバーをチャンネルに招待しました",
+      fetching_team_settings: "チーム{teamId}のチーム設定を取得中",
+      private_channel_permissions_checked:
+        "プライベートチャンネルのパーミッションを確認しました: {permission}(全員許可: {isEveryoneAllowed})",
+      fetching_authorized_users: "チーム{teamId}の認可されたユーザーを取得中",
       authorized_users_fetched:
-        "{count}人の認可ユーザー（管理者/オーナー）が見つかりました",
+        "{count}名の認可されたユーザー(管理者/オーナー)が見つかりました",
       opening_form_with_authorized_users:
-        "{count}人の認可ユーザーでフォームを開いています",
-      modal_opened: "モーダルが正常に開きました",
+        "{count}名の認可されたユーザーを使用してフォームを開く中",
+      modal_opened: "モーダルが正常に開かれました",
       max_page_limit_reached:
-        "最大ページ数（{limit}）に達したため、ページネーションを停止します",
+        "最大ページ制限({limit})に達しました。ページング処理を停止します",
     },
   },
 };

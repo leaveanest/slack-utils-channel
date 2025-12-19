@@ -141,7 +141,7 @@ import { assertEquals } from "https://deno.land/std@0.200.0/testing/asserts.ts";
 ### ファイル構造
 
 ```
-functions/example_function/
+functions/get_channel_info/
 ├── mod.ts          # 関数実装（JSDoc付き）
 └── test.ts         # テスト（正常系・異常系）
 ```
@@ -209,7 +209,7 @@ Deno.test("チャンネルIDが無効な場合はエラーを返す", async () =
 - **Slack API**: 必ずモックを使用
 - **外部依存**: テスト時は全て mock化
 
-参考: `functions/example_function/test.ts`
+参考: `functions/get_channel_info/test.ts`
 
 ## 🌍 I18n（多言語対応）ルール
 

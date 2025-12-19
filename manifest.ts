@@ -1,17 +1,15 @@
 import { Manifest } from "deno-slack-sdk/mod.ts";
-import { ExampleFunctionDefinition } from "./functions/example_function/mod.ts";
-import { GetChannelMembersDefinition } from "./functions/get_channel_members/mod.ts";
-import { CreatePrivateChannelDefinition } from "./functions/create_private_channel/mod.ts";
-import { RequestPrivateChannelDefinition } from "./functions/request_private_channel/mod.ts";
-import { GetAuthorizedUsersDefinition } from "./functions/get_authorized_users/mod.ts";
-import { ShowPrivateChannelFormDefinition } from "./functions/show_private_channel_form/mod.ts";
 import { CheckPrivateChannelPermissionsDefinition } from "./functions/check_private_channel_permissions/mod.ts";
+import { GetAuthorizedUsersDefinition } from "./functions/get_authorized_users/mod.ts";
+import { GetChannelInfoDefinition } from "./functions/get_channel_info/mod.ts";
+import { GetChannelMembersDefinition } from "./functions/get_channel_members/mod.ts";
+import { RequestPrivateChannelDefinition } from "./functions/request_private_channel/mod.ts";
 import { ShowLoadingModalDefinition } from "./functions/show_loading_modal/mod.ts";
-import CreateChannelWorkflow from "./workflows/create_channel_workflow.ts";
-import RequestPrivateChannelWorkflow from "./workflows/request_private_channel_workflow.ts";
-import ExampleWorkflow from "./workflows/example_workflow.ts";
-import GetMembersWorkflow from "./workflows/get_members_workflow.ts";
+import { ShowPrivateChannelFormDefinition } from "./functions/show_private_channel_form/mod.ts";
 import { AuthorizedUserType } from "./lib/types/authorized_user.ts";
+import GetChannelInfoWorkflow from "./workflows/get_channel_info_workflow.ts";
+import GetMembersWorkflow from "./workflows/get_members_workflow.ts";
+import RequestPrivateChannelWorkflow from "./workflows/request_private_channel_workflow.ts";
 
 // Load from environment variables with fallback defaults
 const APP_NAME = Deno.env.get("SLACK_APP_NAME") || "Slack Utils Template";
@@ -24,15 +22,13 @@ export default Manifest({
   icon: "assets/icon.png",
   types: [AuthorizedUserType],
   workflows: [
-    ExampleWorkflow,
+    GetChannelInfoWorkflow,
     GetMembersWorkflow,
-    CreateChannelWorkflow,
     RequestPrivateChannelWorkflow,
   ],
   functions: [
-    ExampleFunctionDefinition,
+    GetChannelInfoDefinition,
     GetChannelMembersDefinition,
-    CreatePrivateChannelDefinition,
     RequestPrivateChannelDefinition,
     GetAuthorizedUsersDefinition,
     ShowPrivateChannelFormDefinition,
@@ -49,5 +45,6 @@ export default Manifest({
     "groups:read", // プライベートチャンネル情報の読み取り
     "groups:write", // プライベートチャンネルの作成・管理
     "users:read", // ユーザー情報の読み取り
+    "im:write", // DMチャンネルを開く（conversations.open）
   ],
 });

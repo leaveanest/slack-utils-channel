@@ -1,31 +1,24 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { z } from "zod";
 import { initI18n, t } from "../../lib/i18n/mod.ts";
-import { AuthorizedUserType } from "../../lib/types/authorized_user.ts";
 import {
   nonEmptyStringSchema,
   userIdSchema,
 } from "../../lib/validation/schemas.ts";
+import { getTeamSettings } from "../check_private_channel_permissions/mod.ts";
+import {
+  type AuthorizedUser,
+  getAuthorizedUsersWithAdminApi,
+} from "../get_authorized_users/mod.ts";
 
 // i18nを初期化
 await initI18n();
 
 /**
- * 認可ユーザー情報の型定義
- */
-interface AuthorizedUser {
-  id: string;
-  name: string;
-  real_name: string;
-  is_admin: boolean;
-  is_owner: boolean;
-  is_primary_owner: boolean;
-}
-
-/**
  * プライベートチャンネル作成リクエストフォームを表示する関数の定義
  *
  * 権限を持つユーザーのみを承認者として選択できるカスタムモーダルを表示します。
+ * 複数の承認者を選択可能で、いずれかの承認者が承認できます。
  */
 export const ShowPrivateChannelFormDefinition = DefineFunction({
   callback_id: "show_private_channel_form",
@@ -35,10 +28,9 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
   source_file: "functions/show_private_channel_form/mod.ts",
   input_parameters: {
     properties: {
-      view_id: {
-        type: Schema.types.string,
-        description:
-          "更新対象のモーダルview_id（ローディングモーダルから渡される）",
+      interactivity: {
+        type: Schema.slack.types.interactivity,
+        description: "フォームを開くためのインタラクティブコンテキスト",
       },
       user_id: {
         type: Schema.slack.types.user_id,
@@ -48,24 +40,11 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
         type: Schema.slack.types.channel_id,
         description: "リクエストが行われたチャンネル",
       },
-      authorized_users: {
-        type: Schema.types.array,
-        items: {
-          type: AuthorizedUserType,
-        },
-        description: "承認権限を持つユーザー一覧",
-      },
-      is_everyone_allowed: {
-        type: Schema.types.boolean,
-        description: "全員がプライベートチャンネルを作成可能かどうか",
-      },
     },
     required: [
-      "view_id",
+      "interactivity",
       "user_id",
       "channel_id",
-      "authorized_users",
-      "is_everyone_allowed",
     ],
   },
   output_parameters: {
@@ -175,6 +154,48 @@ async function getWorkspaceTeamId(
 }
 
 /**
+ * チャンネルのメンバーを取得します
+ */
+async function getChannelMembers(
+  // deno-lint-ignore no-explicit-any
+  client: any,
+  channelId: string,
+): Promise<string[]> {
+  try {
+    const response = await client.conversations.members({ channel: channelId });
+    if (!response.ok) {
+      console.error("Failed to get channel members:", response.error);
+      return [];
+    }
+    return response.members || [];
+  } catch (error) {
+    console.error("Error getting channel members:", error);
+    return [];
+  }
+}
+
+/**
+ * ユーザーをチャンネルに招待します
+ */
+async function inviteUserToChannel(
+  // deno-lint-ignore no-explicit-any
+  client: any,
+  channelId: string,
+  userId: string,
+): Promise<boolean> {
+  try {
+    const response = await client.conversations.invite({
+      channel: channelId,
+      users: userId,
+    });
+    return response.ok;
+  } catch (error) {
+    console.error(`Failed to invite user ${userId} to channel:`, error);
+    return false;
+  }
+}
+
+/**
  * Admin API を使用してメンバーを招待します
  */
 async function inviteMembersWithAdminApi(
@@ -227,15 +248,235 @@ function buildApproverOptions(authorizedUsers: AuthorizedUser[]) {
   });
 }
 
+/**
+ * 承認リクエストのブロックを生成します
+ */
+function buildApprovalRequestBlocks(
+  normalizedName: string,
+  requesterId: string,
+  descriptionText: string,
+  membersText: string,
+  approverIds: string[],
+  buttonValue: string,
+) {
+  const approverMentions = approverIds.map((id) => `<@${id}>`).join(", ");
+
+  return [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: t("messages.approval_request_header"),
+        emoji: true,
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: t("messages.approval_request_details", {
+          requester: requesterId,
+          channel: normalizedName,
+          description: descriptionText,
+          members: membersText,
+        }),
+      },
+    },
+    {
+      type: "actions",
+      block_id: "approval_actions",
+      elements: [
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: t("messages.approve_button"),
+            emoji: true,
+          },
+          action_id: "approve_filtered_channel_request",
+          style: "primary",
+          value: buttonValue,
+        },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: t("messages.deny_button"),
+            emoji: true,
+          },
+          action_id: "deny_filtered_channel_request",
+          style: "danger",
+          value: buttonValue,
+        },
+      ],
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: t("messages.approval_context_multiple", {
+            approvers: approverMentions,
+          }),
+        },
+      ],
+    },
+  ];
+}
+
+/**
+ * 承認済みメッセージのブロックを生成します
+ */
+function buildApprovedBlocks(
+  channelName: string,
+  newChannelId: string,
+  reviewerId: string,
+  requesterId: string,
+) {
+  return [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: t("messages.channel_approved", {
+          channel: channelName,
+          channel_id: newChannelId,
+          reviewer: reviewerId,
+          requester: requesterId,
+        }),
+      },
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `✅ ${
+            t("messages.approved_at", {
+              time: new Date().toISOString(),
+            })
+          }`,
+        },
+      ],
+    },
+  ];
+}
+
+/**
+ * 拒否済みメッセージのブロックを生成します
+ */
+function buildDeniedBlocks(
+  channelName: string,
+  reviewerId: string,
+  requesterId: string,
+) {
+  return [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: t("messages.channel_denied", {
+          channel: channelName,
+          reviewer: reviewerId,
+          requester: requesterId,
+        }),
+      },
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `❌ ${
+            t("messages.denied_at", { time: new Date().toISOString() })
+          }`,
+        },
+      ],
+    },
+  ];
+}
+
 export default SlackFunction(
   ShowPrivateChannelFormDefinition,
-  async ({ inputs, client }) => {
+  async ({ inputs, client, env }) => {
     try {
-      const authorizedUsers = inputs.authorized_users as AuthorizedUser[];
       const channelId = inputs.channel_id as string;
       const userId = inputs.user_id as string;
-      const isEveryoneAllowed = inputs.is_everyone_allowed as boolean;
-      const viewId = inputs.view_id as string;
+      const interactivityPointer = inputs.interactivity.interactivity_pointer;
+
+      // Step 1: ローディングモーダルを即座に表示（interactivityトークン期限対策）
+      console.log("Opening loading modal...");
+
+      const loadingResponse = await client.views.open({
+        interactivity_pointer: interactivityPointer,
+        view: {
+          type: "modal",
+          callback_id: "private_channel_request_modal",
+          notify_on_close: true,
+          title: {
+            type: "plain_text",
+            text: t("form.loading_title"),
+          },
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: t("form.loading_message"),
+              },
+            },
+            {
+              type: "context",
+              elements: [
+                {
+                  type: "mrkdwn",
+                  text: t("form.loading_hint"),
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (!loadingResponse.ok) {
+        console.error("Failed to open loading modal:", loadingResponse.error);
+        throw new Error(
+          t("errors.modal_open_failed", {
+            error: loadingResponse.error ?? t("errors.unknown_error"),
+          }),
+        );
+      }
+
+      const viewId = loadingResponse.view?.id;
+      if (!viewId) {
+        throw new Error(t("errors.view_id_not_found"));
+      }
+
+      console.log("Loading modal opened successfully:", { viewId });
+
+      // Step 2: バックグラウンドで権限確認とユーザー取得を行う
+      const adminToken = env.SLACK_ADMIN_USER_TOKEN;
+
+      if (!adminToken) {
+        throw new Error(t("errors.missing_admin_token"));
+      }
+
+      // ワークスペースの team_id を取得
+      const teamId = await getWorkspaceTeamId(client, channelId);
+
+      // 権限確認とユーザー取得を並行で実行
+      const [permissionsResult, authorizedUsers] = await Promise.all([
+        getTeamSettings(adminToken, teamId),
+        getAuthorizedUsersWithAdminApi(adminToken, teamId),
+      ]);
+
+      const isEveryoneAllowed =
+        permissionsResult.who_can_create_private_channels === "everyone";
+
+      console.log(
+        `Private channel permissions checked: ${permissionsResult.who_can_create_private_channels} ` +
+          `(everyone allowed: ${isEveryoneAllowed})`,
+      );
 
       // 権限ユーザーがいない場合はエラー
       if (!authorizedUsers || authorizedUsers.length === 0) {
@@ -251,7 +492,7 @@ export default SlackFunction(
         }),
       );
 
-      // ローディングモーダルを本来のフォームに更新
+      // Step 3: ローディングモーダルを本来のフォームに更新
       const viewResult = await client.views.update({
         view_id: viewId,
         view: {
@@ -303,22 +544,22 @@ export default SlackFunction(
               type: "input",
               block_id: "approver_block",
               element: {
-                type: "static_select",
+                type: "multi_static_select",
                 action_id: "approver_select",
                 placeholder: {
                   type: "plain_text",
-                  text: t("form.approver_placeholder"),
+                  text: t("form.approver_placeholder_multiple"),
                 },
                 options: approverOptions,
               },
               label: {
                 type: "plain_text",
-                text: t("form.approver_label"),
+                text: t("form.approver_label_multiple"),
                 emoji: true,
               },
               hint: {
                 type: "plain_text",
-                text: t("form.approver_hint"),
+                text: t("form.approver_hint_multiple"),
               },
             },
             {
@@ -397,8 +638,12 @@ export default SlackFunction(
       const values = view.state.values;
       const channelName =
         values.channel_name_block?.channel_name_input?.value || "";
-      const approverId =
-        values.approver_block?.approver_select?.selected_option?.value || "";
+      // 複数選択の承認者を取得
+      const selectedApprovers =
+        values.approver_block?.approver_select?.selected_options || [];
+      const approverIds = selectedApprovers.map(
+        (opt: { value: string }) => opt.value,
+      );
       const description = values.description_block?.description_input?.value ||
         "";
       const initialMembers =
@@ -407,7 +652,7 @@ export default SlackFunction(
 
       console.log("Form values:", {
         channelName,
-        approverId,
+        approverIds,
         description,
         initialMembersCount: initialMembers.length,
         isEveryoneAllowed,
@@ -416,7 +661,6 @@ export default SlackFunction(
       try {
         // バリデーション
         const validatedChannelName = nonEmptyStringSchema.parse(channelName);
-        const validatedApproverId = userIdSchema.parse(approverId);
         const normalizedName = normalizeChannelName(validatedChannelName);
 
         if (normalizedName.length === 0) {
@@ -425,9 +669,15 @@ export default SlackFunction(
           );
         }
 
+        // 承認者のバリデーション
+        if (approverIds.length === 0) {
+          throw new Error(t("errors.no_approver_selected"));
+        }
+        const membersSchema = z.array(userIdSchema);
+        membersSchema.parse(approverIds);
+
         // 初期メンバーのバリデーション
         if (initialMembers.length > 0) {
-          const membersSchema = z.array(userIdSchema);
           membersSchema.parse(initialMembers);
         }
 
@@ -476,12 +726,11 @@ export default SlackFunction(
 
           // メンバー招待（Admin API使用）
           const allMembersToInvite = [requesterId];
-          // 承認者をチャンネルに参加させる（承認不要でも必ず参加）
-          if (
-            validatedApproverId &&
-            !allMembersToInvite.includes(validatedApproverId)
-          ) {
-            allMembersToInvite.push(validatedApproverId);
+          // 選択された承認者をチャンネルに参加させる（承認不要でも必ず参加）
+          for (const approverId of approverIds) {
+            if (!allMembersToInvite.includes(approverId)) {
+              allMembersToInvite.push(approverId);
+            }
           }
           for (const member of initialMembers) {
             if (!allMembersToInvite.includes(member)) {
@@ -505,7 +754,10 @@ export default SlackFunction(
             console.error("Failed to invite members:", inviteError);
           }
 
-          // 作成完了メッセージを送信
+          // 作成完了メッセージを送信（複数承認者対応）
+          const participantMentions = approverIds.map((id: string) =>
+            `<@${id}>`
+          ).join(", ");
           await client.chat.postMessage({
             channel: approvalChannelId,
             text: t("messages.channel_created_directly", {
@@ -520,7 +772,7 @@ export default SlackFunction(
                     channel: normalizedName,
                     channel_id: newChannelId,
                     requester: requesterId,
-                    participant: validatedApproverId,
+                    participant: participantMentions,
                   }),
                 },
               },
@@ -544,85 +796,159 @@ export default SlackFunction(
           return;
         }
 
-        // 承認が必要な場合は承認リクエストメッセージを送信
-        await client.chat.postMessage({
+        // ボタンのvalueに含めるデータ
+        const buttonValue = JSON.stringify({
+          channel_name: normalizedName,
+          requester_id: requesterId,
+          approver_ids: approverIds,
+          description: description || "",
+          initial_members: initialMembers,
+          approval_channel_id: approvalChannelId,
+          dm_messages: [] as { user_id: string; ts: string }[],
+          channel_message_ts: "",
+        });
+
+        // 承認者がチャンネルに参加しているか確認し、未参加なら招待
+        const channelMembers = await getChannelMembers(
+          client,
+          approvalChannelId,
+        );
+        for (const approverId of approverIds) {
+          if (!channelMembers.includes(approverId)) {
+            console.log(
+              `Approver ${approverId} is not in channel, inviting...`,
+            );
+            await inviteUserToChannel(client, approvalChannelId, approverId);
+          }
+        }
+
+        // 承認リクエストメッセージをチャンネルに送信
+        const channelMessageResult = await client.chat.postMessage({
           channel: approvalChannelId,
           text: t("messages.approval_request_title", {
             channel: normalizedName,
           }),
-          blocks: [
-            {
-              type: "header",
-              text: {
-                type: "plain_text",
-                text: t("messages.approval_request_header"),
-                emoji: true,
-              },
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: t("messages.approval_request_details", {
-                  requester: requesterId,
-                  channel: normalizedName,
-                  description: descriptionText,
-                  members: membersText,
-                }),
-              },
-            },
-            {
-              type: "actions",
-              block_id: "approval_actions",
-              elements: [
-                {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: t("messages.approve_button"),
-                    emoji: true,
-                  },
-                  action_id: "approve_filtered_channel_request",
-                  style: "primary",
-                  value: JSON.stringify({
-                    channel_name: normalizedName,
-                    requester_id: requesterId,
-                    approver_id: validatedApproverId,
-                    description: description || "",
-                    initial_members: initialMembers,
-                    approval_channel_id: approvalChannelId,
-                  }),
-                },
-                {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: t("messages.deny_button"),
-                    emoji: true,
-                  },
-                  action_id: "deny_filtered_channel_request",
-                  style: "danger",
-                  value: JSON.stringify({
-                    channel_name: normalizedName,
-                    requester_id: requesterId,
-                    approver_id: validatedApproverId,
-                  }),
-                },
-              ],
-            },
-            {
-              type: "context",
-              elements: [
-                {
-                  type: "mrkdwn",
-                  text: t("messages.approval_context", {
-                    approver: validatedApproverId,
-                  }),
-                },
-              ],
-            },
-          ],
+          blocks: buildApprovalRequestBlocks(
+            normalizedName,
+            requesterId,
+            descriptionText,
+            membersText,
+            approverIds,
+            buttonValue,
+          ),
         });
+
+        const channelMessageTs = channelMessageResult.ts;
+
+        // DMメッセージの情報を保存
+        const dmMessages: {
+          channel_id: string;
+          user_id: string;
+          ts: string;
+        }[] = [];
+
+        // 各承認者にDMを送信
+        for (const approverId of approverIds) {
+          try {
+            // DMチャンネルを開く
+            const dmOpenResult = await client.conversations.open({
+              users: approverId,
+            });
+
+            if (!dmOpenResult.ok || !dmOpenResult.channel?.id) {
+              console.error(
+                `Failed to open DM channel for ${approverId}:`,
+                dmOpenResult.error,
+              );
+              continue;
+            }
+
+            const dmChannelId = dmOpenResult.channel.id;
+
+            const dmResult = await client.chat.postMessage({
+              channel: dmChannelId,
+              text: t("messages.dm_approval_request_title", {
+                channel: normalizedName,
+                requester: requesterId,
+              }),
+              blocks: buildApprovalRequestBlocks(
+                normalizedName,
+                requesterId,
+                descriptionText,
+                membersText,
+                approverIds,
+                JSON.stringify({
+                  channel_name: normalizedName,
+                  requester_id: requesterId,
+                  approver_ids: approverIds,
+                  description: description || "",
+                  initial_members: initialMembers,
+                  approval_channel_id: approvalChannelId,
+                  channel_message_ts: channelMessageTs,
+                  dm_messages: [], // Will be updated later
+                }),
+              ),
+            });
+
+            if (dmResult.ok && dmResult.ts) {
+              dmMessages.push({
+                channel_id: dmChannelId,
+                user_id: approverId,
+                ts: dmResult.ts,
+              });
+            }
+          } catch (dmError) {
+            console.error(`Failed to send DM to ${approverId}:`, dmError);
+          }
+        }
+
+        // チャンネルメッセージを更新して、DMメッセージ情報を含める
+        const updatedButtonValue = JSON.stringify({
+          channel_name: normalizedName,
+          requester_id: requesterId,
+          approver_ids: approverIds,
+          description: description || "",
+          initial_members: initialMembers,
+          approval_channel_id: approvalChannelId,
+          channel_message_ts: channelMessageTs,
+          dm_messages: dmMessages,
+        });
+
+        await client.chat.update({
+          channel: approvalChannelId,
+          ts: channelMessageTs,
+          blocks: buildApprovalRequestBlocks(
+            normalizedName,
+            requesterId,
+            descriptionText,
+            membersText,
+            approverIds,
+            updatedButtonValue,
+          ),
+        });
+
+        // 各DMメッセージも更新
+        for (const dm of dmMessages) {
+          try {
+            await client.chat.update({
+              channel: dm.channel_id,
+              ts: dm.ts,
+              blocks: buildApprovalRequestBlocks(
+                normalizedName,
+                requesterId,
+                descriptionText,
+                membersText,
+                approverIds,
+                updatedButtonValue,
+              ),
+            });
+          } catch (updateError) {
+            console.error(
+              `Failed to update DM for ${dm.user_id}:`,
+              updateError,
+            );
+          }
+        }
 
         console.log(t("logs.approval_request_sent"));
 
@@ -651,26 +977,33 @@ export default SlackFunction(
       const reviewerId = body.user.id;
       const messageTs = body.message?.ts;
       // deno-lint-ignore no-explicit-any
-      const channelId = (body as any).channel?.id;
+      const currentChannelId = (body as any).channel?.id;
 
       // ボタンの value から情報を取得
       const requestData = JSON.parse(action.value || "{}");
       const channelName = requestData.channel_name;
       const requesterId = requestData.requester_id;
-      const approverId = requestData.approver_id;
+      const approverIds: string[] = requestData.approver_ids || [];
       const description = requestData.description;
       const initialMembers = requestData.initial_members || [];
       const approvalChannelId = requestData.approval_channel_id;
+      const channelMessageTs = requestData.channel_message_ts;
+      const dmMessages: { channel_id: string; user_id: string; ts: string }[] =
+        requestData.dm_messages || [];
 
-      // 承認者チェック
-      if (approverId && reviewerId !== approverId) {
+      // 承認者チェック: 選択された承認者のいずれかであること
+      if (approverIds.length > 0 && !approverIds.includes(reviewerId)) {
         console.log(
-          `Unauthorized approval attempt: ${reviewerId} is not ${approverId}`,
+          `Unauthorized approval attempt: ${reviewerId} is not in approvers list`,
         );
+        const approverMentions = approverIds.map((id: string) => `<@${id}>`)
+          .join(", ");
         await client.chat.postEphemeral({
-          channel: approvalChannelId,
+          channel: currentChannelId,
           user: reviewerId,
-          text: t("errors.not_authorized_approver", { approver: approverId }),
+          text: t("errors.not_authorized_approver_multiple", {
+            approvers: approverMentions,
+          }),
         });
         return;
       }
@@ -693,7 +1026,7 @@ export default SlackFunction(
           adminToken,
           channelName,
           teamId,
-          description, // 説明をチャンネル作成時に設定
+          description,
         );
 
         if (!createResult.ok) {
@@ -732,9 +1065,11 @@ export default SlackFunction(
         };
 
         const allMembersToInvite = [requesterId];
-        // Add the approver to the channel
-        if (approverId && !allMembersToInvite.includes(approverId)) {
-          allMembersToInvite.push(approverId);
+        // 全ての承認者をチャンネルに追加
+        for (const approverId of approverIds) {
+          if (!allMembersToInvite.includes(approverId)) {
+            allMembersToInvite.push(approverId);
+          }
         }
         for (const member of initialMembers) {
           if (!allMembersToInvite.includes(member)) {
@@ -752,39 +1087,48 @@ export default SlackFunction(
           console.error("Failed to invite members:", inviteError);
         }
 
-        // メッセージを更新
-        if (messageTs && channelId) {
+        // 承認済みブロックを生成
+        const approvedBlocks = buildApprovedBlocks(
+          channelName,
+          newChannelId,
+          reviewerId,
+          requesterId,
+        );
+
+        // チャンネルメッセージを更新
+        if (channelMessageTs) {
+          try {
+            await client.chat.update({
+              channel: approvalChannelId,
+              ts: channelMessageTs,
+              blocks: approvedBlocks,
+            });
+          } catch (updateError) {
+            console.error("Failed to update channel message:", updateError);
+          }
+        } else if (messageTs && currentChannelId) {
+          // フォールバック: 現在のメッセージを更新
           await client.chat.update({
-            channel: channelId,
+            channel: currentChannelId,
             ts: messageTs,
-            blocks: [
-              {
-                type: "section",
-                text: {
-                  type: "mrkdwn",
-                  text: t("messages.channel_approved", {
-                    channel: channelName,
-                    channel_id: newChannelId,
-                    reviewer: reviewerId,
-                    requester: requesterId,
-                  }),
-                },
-              },
-              {
-                type: "context",
-                elements: [
-                  {
-                    type: "mrkdwn",
-                    text: `✅ ${
-                      t("messages.approved_at", {
-                        time: new Date().toISOString(),
-                      })
-                    }`,
-                  },
-                ],
-              },
-            ],
+            blocks: approvedBlocks,
           });
+        }
+
+        // 全てのDMメッセージを更新（close）
+        for (const dm of dmMessages) {
+          try {
+            await client.chat.update({
+              channel: dm.channel_id,
+              ts: dm.ts,
+              blocks: approvedBlocks,
+            });
+          } catch (updateError) {
+            console.error(
+              `Failed to update DM for ${dm.user_id}:`,
+              updateError,
+            );
+          }
         }
 
         // 関数を完了
@@ -803,9 +1147,9 @@ export default SlackFunction(
           : `${error}`;
         console.error("Approval handler error:", errorMessage);
 
-        if (messageTs && channelId) {
+        if (messageTs && currentChannelId) {
           await client.chat.update({
-            channel: channelId,
+            channel: currentChannelId,
             ts: messageTs,
             blocks: [
               {
@@ -838,51 +1182,68 @@ export default SlackFunction(
       const reviewerId = body.user.id;
       const messageTs = body.message?.ts;
       // deno-lint-ignore no-explicit-any
-      const channelId = (body as any).channel?.id;
+      const currentChannelId = (body as any).channel?.id;
 
       const requestData = JSON.parse(action.value || "{}");
       const channelName = requestData.channel_name;
       const requesterId = requestData.requester_id;
-      const approverId = requestData.approver_id;
+      const approverIds: string[] = requestData.approver_ids || [];
+      const approvalChannelId = requestData.approval_channel_id;
+      const channelMessageTs = requestData.channel_message_ts;
+      const dmMessages: { channel_id: string; user_id: string; ts: string }[] =
+        requestData.dm_messages || [];
 
-      if (approverId && reviewerId !== approverId) {
+      // 承認者チェック
+      if (approverIds.length > 0 && !approverIds.includes(reviewerId)) {
+        const approverMentions = approverIds.map((id: string) => `<@${id}>`)
+          .join(", ");
         await client.chat.postEphemeral({
-          channel: channelId,
+          channel: currentChannelId,
           user: reviewerId,
-          text: t("errors.not_authorized_approver", { approver: approverId }),
+          text: t("errors.not_authorized_approver_multiple", {
+            approvers: approverMentions,
+          }),
         });
         return;
       }
 
-      if (messageTs && channelId) {
+      // 拒否済みブロックを生成
+      const deniedBlocks = buildDeniedBlocks(
+        channelName,
+        reviewerId,
+        requesterId,
+      );
+
+      // チャンネルメッセージを更新
+      if (channelMessageTs) {
+        try {
+          await client.chat.update({
+            channel: approvalChannelId,
+            ts: channelMessageTs,
+            blocks: deniedBlocks,
+          });
+        } catch (updateError) {
+          console.error("Failed to update channel message:", updateError);
+        }
+      } else if (messageTs && currentChannelId) {
         await client.chat.update({
-          channel: channelId,
+          channel: currentChannelId,
           ts: messageTs,
-          blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: t("messages.channel_denied", {
-                  channel: channelName,
-                  reviewer: reviewerId,
-                  requester: requesterId,
-                }),
-              },
-            },
-            {
-              type: "context",
-              elements: [
-                {
-                  type: "mrkdwn",
-                  text: `❌ ${
-                    t("messages.denied_at", { time: new Date().toISOString() })
-                  }`,
-                },
-              ],
-            },
-          ],
+          blocks: deniedBlocks,
         });
+      }
+
+      // 全てのDMメッセージを更新（close）
+      for (const dm of dmMessages) {
+        try {
+          await client.chat.update({
+            channel: dm.channel_id,
+            ts: dm.ts,
+            blocks: deniedBlocks,
+          });
+        } catch (updateError) {
+          console.error(`Failed to update DM for ${dm.user_id}:`, updateError);
+        }
       }
 
       await client.functions.completeSuccess({

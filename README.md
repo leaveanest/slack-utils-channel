@@ -191,12 +191,11 @@ slack run
 
 ### 利用可能なワークフロー
 
-| ワークフロー                    | トリガー                             | 説明                                    |
-| ------------------------------- | ------------------------------------ | --------------------------------------- |
-| `CreateChannelWorkflow`         | `create_channel_trigger.ts`          | パブリック/プライベートチャンネルを作成 |
-| `RequestPrivateChannelWorkflow` | `request_private_channel_trigger.ts` | 承認を経てプライベートチャンネルを作成  |
-| `GetMembersWorkflow`            | `get_members_trigger.ts`             | チャンネルメンバー一覧を取得            |
-| `ExampleWorkflow`               | `example_trigger.ts`                 | サンプルワークフロー                    |
+| ワークフロー                    | トリガー                             | 説明                                         |
+| ------------------------------- | ------------------------------------ | -------------------------------------------- |
+| `RequestPrivateChannelWorkflow` | `request_private_channel_trigger.ts` | 管理者承認を経てプライベートチャンネルを作成 |
+| `GetChannelInfoWorkflow`        | `get_channel_info_trigger.ts`        | チャンネル情報を取得                         |
+| `GetMembersWorkflow`            | `get_members_trigger.ts`             | チャンネルメンバー一覧を取得                 |
 
 ### トリガーの登録
 
@@ -258,7 +257,7 @@ export async function retrieveChannelSummary(
 }
 ```
 
-参考実装: [`functions/example_function/`](functions/example_function/)
+参考実装: [`functions/get_channel_info/`](functions/get_channel_info/)
 
 ## 多言語対応（I18n）
 
@@ -576,7 +575,7 @@ Settings → Secrets and variables → Actions
 
 ```bash
 # ローカルで実行（開発環境）
-slack run workflows/example_workflow
+slack run
 
 # .envファイルは自動的に読み込まれます
 ```
@@ -603,7 +602,7 @@ deno task check
 slack deploy --env production
 
 # 4. トリガーを有効化
-slack triggers create --trigger-file triggers/example_trigger.ts
+slack triggers create --trigger-file triggers/request_private_channel_trigger.ts
 ```
 
 **注意:**
@@ -617,22 +616,24 @@ slack triggers create --trigger-file triggers/example_trigger.ts
 ```
 slack-utils-channel/
 ├── functions/
-│   ├── create_private_channel/  # チャンネル作成関数
-│   ├── request_private_channel/ # 承認ワークフロー用関数
-│   ├── get_channel_members/     # メンバー取得関数
-│   └── example_function/        # サンプル関数
+│   ├── check_private_channel_permissions/  # 権限確認関数
+│   ├── get_authorized_users/               # 承認者取得関数
+│   ├── get_channel_info/                   # チャンネル情報取得関数
+│   ├── get_channel_members/                # メンバー取得関数
+│   ├── request_private_channel/            # 承認ワークフロー用関数
+│   ├── show_loading_modal/                 # ローディングモーダル関数
+│   └── show_private_channel_form/          # プライベートチャンネル申請フォーム関数
 ├── workflows/
-│   ├── create_channel_workflow.ts          # チャンネル作成ワークフロー
-│   ├── request_private_channel_workflow.ts # 承認ワークフロー
+│   ├── get_channel_info_workflow.ts        # チャンネル情報取得ワークフロー
 │   ├── get_members_workflow.ts             # メンバー取得ワークフロー
-│   └── example_workflow.ts                 # サンプルワークフロー
+│   └── request_private_channel_workflow.ts # 承認ワークフロー
 ├── triggers/
-│   ├── create_channel_trigger.ts           # チャンネル作成トリガー
-│   ├── request_private_channel_trigger.ts  # 承認リクエストトリガー
+│   ├── get_channel_info_trigger.ts         # チャンネル情報取得トリガー
 │   ├── get_members_trigger.ts              # メンバー取得トリガー
-│   └── example_trigger.ts                  # サンプルトリガー
+│   └── request_private_channel_trigger.ts  # 承認リクエストトリガー
 ├── lib/
 │   ├── i18n/           # 多言語対応
+│   ├── types/          # 型定義
 │   └── validation/     # Zodバリデーションスキーマ
 ├── locales/            # 言語ファイル（en.json, ja.json）
 ├── docs/               # ドキュメント
