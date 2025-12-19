@@ -1,7 +1,4 @@
 import { DefineWorkflow, Schema } from "deno-slack-sdk/mod.ts";
-import { ShowLoadingModalDefinition } from "../functions/show_loading_modal/mod.ts";
-import { CheckPrivateChannelPermissionsDefinition } from "../functions/check_private_channel_permissions/mod.ts";
-import { GetAuthorizedUsersDefinition } from "../functions/get_authorized_users/mod.ts";
 import { ShowPrivateChannelFormDefinition } from "../functions/show_private_channel_form/mod.ts";
 
 /**
@@ -18,6 +15,7 @@ import { ShowPrivateChannelFormDefinition } from "../functions/show_private_chan
  * 1. ローディングモーダルを即座に表示（interactivityタイムアウト対策）
  * 2. バックグラウンドで権限確認・ユーザー取得
  * 3. モーダルを本来のフォームに更新
+ * 4. モーダル送信を処理
  */
 const RequestPrivateChannelWorkflow = DefineWorkflow({
   callback_id: "request_private_channel_workflow",
@@ -42,44 +40,14 @@ const RequestPrivateChannelWorkflow = DefineWorkflow({
   },
 });
 
-// Step 1: ローディングモーダルを即座に表示
-// interactivityトークンが期限切れになる前にモーダルを開く
-const showLoadingStep = RequestPrivateChannelWorkflow.addStep(
-  ShowLoadingModalDefinition,
+// 1つの関数でローディングモーダル表示→情報取得→フォーム更新→送信処理を行う
+// これにより、モーダルを開いた関数がモーダル送信イベントを正しく受け取れる
+RequestPrivateChannelWorkflow.addStep(
+  ShowPrivateChannelFormDefinition,
   {
     interactivity: RequestPrivateChannelWorkflow.inputs.interactivity,
     user_id: RequestPrivateChannelWorkflow.inputs.user_id,
     channel_id: RequestPrivateChannelWorkflow.inputs.channel_id,
-  },
-);
-
-// Step 2: プライベートチャンネル作成権限を確認
-// ワークスペースで誰がプライベートチャンネルを作成できるかを確認
-const checkPermissionsStep = RequestPrivateChannelWorkflow.addStep(
-  CheckPrivateChannelPermissionsDefinition,
-  {
-    channel_id: RequestPrivateChannelWorkflow.inputs.channel_id,
-  },
-);
-
-// Step 3: 権限を持つユーザー（管理者/オーナー）を取得
-const getAuthorizedUsersStep = RequestPrivateChannelWorkflow.addStep(
-  GetAuthorizedUsersDefinition,
-  {
-    channel_id: RequestPrivateChannelWorkflow.inputs.channel_id,
-  },
-);
-
-// Step 4: ローディングモーダルを本来のフォームに更新
-// view_idを使ってviews.updateでモーダルを更新
-RequestPrivateChannelWorkflow.addStep(
-  ShowPrivateChannelFormDefinition,
-  {
-    view_id: showLoadingStep.outputs.view_id,
-    user_id: showLoadingStep.outputs.user_id,
-    channel_id: showLoadingStep.outputs.channel_id,
-    authorized_users: getAuthorizedUsersStep.outputs.authorized_users,
-    is_everyone_allowed: checkPermissionsStep.outputs.is_everyone_allowed,
   },
 );
 

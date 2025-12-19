@@ -1,26 +1,18 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { z } from "zod";
 import { initI18n, t } from "../../lib/i18n/mod.ts";
-import { AuthorizedUserType } from "../../lib/types/authorized_user.ts";
 import {
   nonEmptyStringSchema,
   userIdSchema,
 } from "../../lib/validation/schemas.ts";
+import { getTeamSettings } from "../check_private_channel_permissions/mod.ts";
+import {
+  type AuthorizedUser,
+  getAuthorizedUsersWithAdminApi,
+} from "../get_authorized_users/mod.ts";
 
 // i18nを初期化
 await initI18n();
-
-/**
- * 認可ユーザー情報の型定義
- */
-interface AuthorizedUser {
-  id: string;
-  name: string;
-  real_name: string;
-  is_admin: boolean;
-  is_owner: boolean;
-  is_primary_owner: boolean;
-}
 
 /**
  * プライベートチャンネル作成リクエストフォームを表示する関数の定義
@@ -36,10 +28,9 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
   source_file: "functions/show_private_channel_form/mod.ts",
   input_parameters: {
     properties: {
-      view_id: {
-        type: Schema.types.string,
-        description:
-          "更新対象のモーダルview_id（ローディングモーダルから渡される）",
+      interactivity: {
+        type: Schema.slack.types.interactivity,
+        description: "フォームを開くためのインタラクティブコンテキスト",
       },
       user_id: {
         type: Schema.slack.types.user_id,
@@ -49,24 +40,11 @@ export const ShowPrivateChannelFormDefinition = DefineFunction({
         type: Schema.slack.types.channel_id,
         description: "リクエストが行われたチャンネル",
       },
-      authorized_users: {
-        type: Schema.types.array,
-        items: {
-          type: AuthorizedUserType,
-        },
-        description: "承認権限を持つユーザー一覧",
-      },
-      is_everyone_allowed: {
-        type: Schema.types.boolean,
-        description: "全員がプライベートチャンネルを作成可能かどうか",
-      },
     },
     required: [
-      "view_id",
+      "interactivity",
       "user_id",
       "channel_id",
-      "authorized_users",
-      "is_everyone_allowed",
     ],
   },
   output_parameters: {
@@ -420,13 +398,85 @@ function buildDeniedBlocks(
 
 export default SlackFunction(
   ShowPrivateChannelFormDefinition,
-  async ({ inputs, client }) => {
+  async ({ inputs, client, env }) => {
     try {
-      const authorizedUsers = inputs.authorized_users as AuthorizedUser[];
       const channelId = inputs.channel_id as string;
       const userId = inputs.user_id as string;
-      const isEveryoneAllowed = inputs.is_everyone_allowed as boolean;
-      const viewId = inputs.view_id as string;
+      const interactivityPointer = inputs.interactivity.interactivity_pointer;
+
+      // Step 1: ローディングモーダルを即座に表示（interactivityトークン期限対策）
+      console.log("Opening loading modal...");
+
+      const loadingResponse = await client.views.open({
+        interactivity_pointer: interactivityPointer,
+        view: {
+          type: "modal",
+          callback_id: "private_channel_request_modal",
+          notify_on_close: true,
+          title: {
+            type: "plain_text",
+            text: t("form.loading_title"),
+          },
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: t("form.loading_message"),
+              },
+            },
+            {
+              type: "context",
+              elements: [
+                {
+                  type: "mrkdwn",
+                  text: t("form.loading_hint"),
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (!loadingResponse.ok) {
+        console.error("Failed to open loading modal:", loadingResponse.error);
+        throw new Error(
+          t("errors.modal_open_failed", {
+            error: loadingResponse.error ?? t("errors.unknown_error"),
+          }),
+        );
+      }
+
+      const viewId = loadingResponse.view?.id;
+      if (!viewId) {
+        throw new Error(t("errors.view_id_not_found"));
+      }
+
+      console.log("Loading modal opened successfully:", { viewId });
+
+      // Step 2: バックグラウンドで権限確認とユーザー取得を行う
+      const adminToken = env.SLACK_ADMIN_USER_TOKEN;
+
+      if (!adminToken) {
+        throw new Error(t("errors.missing_admin_token"));
+      }
+
+      // ワークスペースの team_id を取得
+      const teamId = await getWorkspaceTeamId(client, channelId);
+
+      // 権限確認とユーザー取得を並行で実行
+      const [permissionsResult, authorizedUsers] = await Promise.all([
+        getTeamSettings(adminToken, teamId),
+        getAuthorizedUsersWithAdminApi(adminToken, teamId),
+      ]);
+
+      const isEveryoneAllowed =
+        permissionsResult.who_can_create_private_channels === "everyone";
+
+      console.log(
+        `Private channel permissions checked: ${permissionsResult.who_can_create_private_channels} ` +
+          `(everyone allowed: ${isEveryoneAllowed})`,
+      );
 
       // 権限ユーザーがいない場合はエラー
       if (!authorizedUsers || authorizedUsers.length === 0) {
@@ -442,7 +492,7 @@ export default SlackFunction(
         }),
       );
 
-      // ローディングモーダルを本来のフォームに更新
+      // Step 3: ローディングモーダルを本来のフォームに更新
       const viewResult = await client.views.update({
         view_id: viewId,
         view: {
