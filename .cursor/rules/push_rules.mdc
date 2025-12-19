@@ -89,7 +89,7 @@ CIでのフォーマットエラーやテスト失敗を防ぐため、ローカ
 
 ### 参考例
 
-`functions/example_function/` を参照してください：
+`functions/get_channel_info/` を参照してください：
 
 - `mod.ts`: JSDocコメント付きの関数実装
 - `test.ts`: 正常系・異常系のテストケース

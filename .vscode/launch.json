@@ -12,7 +12,7 @@
         "--inspect-wait",
         "--allow-all"
       ],
-      "program": "${workspaceFolder}/functions/example_function/mod.ts",
+      "program": "${workspaceFolder}/functions/get_channel_info/mod.ts",
       "attachSimplePort": 9229,
       "outputCapture": "console"
     },
