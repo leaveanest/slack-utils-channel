@@ -1,5 +1,10 @@
 # slack-utils-channel
 
+[![CI](https://github.com/leaveanest/slack-utils-channel/actions/workflows/deno-ci.yml/badge.svg)](https://github.com/leaveanest/slack-utils-channel/actions/workflows/deno-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Deno](https://img.shields.io/badge/Deno-v2.x-blue?logo=deno)](https://deno.land/)
+[![Slack Platform](https://img.shields.io/badge/Slack-Platform-4A154B?logo=slack)](https://api.slack.com/automation)
+
 Slackチャンネル管理のためのワークフローアプリケーション
 
 ## 概要
@@ -55,8 +60,8 @@ Slackチャンネル管理のためのワークフローアプリケーション
 
 ```bash
 # リポジトリを取得
-git clone https://github.com/your-org/slack-utils-template.git
-cd slack-utils-template
+git clone https://github.com/leaveanest/slack-utils-channel.git
+cd slack-utils-channel
 
 # 環境変数の設定
 cp .env.example .env
@@ -111,6 +116,7 @@ SLACK_ADMIN_USER_TOKEN=xoxp-xxxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxxxx
 2. 権限を確認して「許可する」
 3. 「User OAuth Token」（`xoxp-` で始まる）をコピー
 4. `.env` ファイルに設定：
+
    ```bash
    SLACK_ADMIN_USER_TOKEN=xoxp-your-token-here
    ```
@@ -128,6 +134,7 @@ SLACK_ADMIN_USER_TOKEN=xoxp-xxxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxxxx
 2. **ブラウザコンソールで確認する方法**
    - F12 キーで開発者ツールを開く
    - Console タブで以下を実行:
+
      ```javascript
      boot_data.team_id;
      ```
@@ -158,7 +165,7 @@ SLACK_ADMIN_USER_TOKEN=xoxp-xxxxxxxxxxxx-xxxxxxxxxxxx-xxxxxxxxxxxx
 ```json
 "deployments": {
   "production": {
-    "workspace": "your-workspace-name",
+    "workspace": "<YOUR_WORKSPACE_NAME>",
     "token_alias": "production"
   }
 }
@@ -589,7 +596,7 @@ slack run
 # slack.jsonに以下を追加：
 # "deployments": {
 #   "production": {
-#     "workspace": "your-workspace-name",
+#     "workspace": "<YOUR_WORKSPACE_NAME>",
 #     "token_alias": "production"
 #   }
 # }
@@ -741,7 +748,23 @@ git push --no-verify    # pre-pushをスキップ
 
 詳細は `docs/git-hooks-setup.md` を参照してください。
 
+## 貢献
+
+貢献を歓迎します！バグ報告、機能リクエスト、プルリクエストをお待ちしています。
+
+詳細は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+
+## 謝辞
+
+このプロジェクトは以下のオープンソースプロジェクトを使用しています：
+
+- [Slack Deno SDK](https://github.com/slackapi/deno-slack-sdk) - Slack
+  Platform用のDeno SDK
+- [Zod](https://github.com/colinhacks/zod) -
+  TypeScript-firstスキーマバリデーション
+- [Deno](https://deno.land/) - セキュアなJavaScript/TypeScriptランタイム
+
 ## ライセンス
 
-本テンプレートは MIT ライセンスで提供されています。詳細は `LICENSE`
+本プロジェクトは MIT ライセンスで提供されています。詳細は [LICENSE](LICENSE)
 を参照してください。
