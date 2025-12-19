@@ -143,7 +143,7 @@ Deno.test({
     if (!result.success) {
       // 日本語のエラーメッセージを確認（部分一致）
       assertEquals(
-        result.error.errors[0].message.includes("チャネルID"),
+        result.error.errors[0].message.includes("チャンネルID"),
         true,
       );
     }
@@ -256,7 +256,7 @@ Deno.test({
     if (!result2.success) {
       // 日本語のエラーメッセージが表示される
       assertEquals(
-        result2.error.errors[0].message.includes("チャネルID"),
+        result2.error.errors[0].message.includes("チャンネルID"),
         true,
       );
     }
