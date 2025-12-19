@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.5.0...v1.6.0) (2025-12-19)
+
+
+### Features
+
+* Add DM channel opening functionality and update message handling ([f2ebf14](https://github.com/leaveanest/slack-utils-channel/commit/f2ebf145dac6cfb9fb614e4f7cec29d79a8404a0))
+* Enhance private channel request workflow and UI ([be9e944](https://github.com/leaveanest/slack-utils-channel/commit/be9e9449db7eaa87b89a66e0645b8125f2af6b38))
+* **i18n:** Enhance localization messages and improve error handling ([fc194ef](https://github.com/leaveanest/slack-utils-channel/commit/fc194ef507871e276b666bbef28cd8f7e438759d))
+
 ## [1.5.0](https://github.com/leaveanest/slack-utils-channel/compare/v1.4.0...v1.5.0) (2025-12-17)
 
 
