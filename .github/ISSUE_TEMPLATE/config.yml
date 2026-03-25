@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Questions / 質問・相談"
+    url: "https://github.com/leaveanest/slack-utils-channel/issues/new?labels=question"
+    about: "質問や相談はこちら / For questions and discussions"
+  - name: "Security Report / セキュリティ報告"
+    url: "https://github.com/leaveanest/slack-utils-channel/blob/main/SECURITY.md"
+    about: "セキュリティの脆弱性報告 / Report security vulnerabilities (do not use public issues)"
