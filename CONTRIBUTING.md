@@ -1,4 +1,4 @@
-# Contributing to slack-utils-template
+# Contributing to slack-utils-channel
 
 > **English version is available: [CONTRIBUTING_en.md](CONTRIBUTING_en.md)**
 
@@ -105,6 +105,13 @@ bash scripts/setup-git-hooks.sh
 - 必要に応じて `deno task dev` でローカル実行してください。
 - Git
   hooksをセットアップすると、commit/push時に自動的に品質チェックが実行されます。
+
+### Slack Developer Sandbox
+
+本リポジトリの承認ワークフロー（Admin API）は Enterprise Grid
+環境が前提です。プロダクション環境がなくても、[Slack Developer Program](https://api.slack.com/developer-program)（無料）に参加すると
+Enterprise Grid 相当のサンドボックスワークスペースを利用できます。
+開発・テストにぜひご活用ください。
 
 ### slack.json について
 

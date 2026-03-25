@@ -1,4 +1,4 @@
-# Contributing to slack-utils-template
+# Contributing to slack-utils-channel
 
 > **Japanese version / 日本語版: [CONTRIBUTING.md](CONTRIBUTING.md)**
 
@@ -107,6 +107,14 @@ bash scripts/setup-git-hooks.sh
 - Store sensitive information like Slack CLI tokens in `.env`.
 - Use `deno task dev` for local execution as needed.
 - Setting up Git hooks will automatically run quality checks on commit/push.
+
+### Slack Developer Sandbox
+
+The approval workflows (Admin API) in this repository require an Enterprise Grid
+environment. If you don't have a production workspace, you can join the
+[Slack Developer Program](https://api.slack.com/developer-program) (free) to get
+access to a sandbox workspace equivalent to Enterprise Grid. We recommend using
+it for development and testing.
 
 ### About slack.json
 
