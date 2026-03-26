@@ -25,12 +25,23 @@ jobs:
             リバネスのslack-utilsプロジェクトへようこそ。
             Thank you for opening your first issue! 🙌
             Welcome to the Leave a Nest slack-utils project.
-            ガイドラインはこちらをご確認ください: https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+
+            📖 ガイドライン / Contributing Guide:
+            - 🇯🇵 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+            - 🇬🇧 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING_en.md
+
             ご不明点があれば遠慮なくお知らせください。
+            Feel free to ask if you have any questions.
           pr-message: |
             初めてのPRありがとうございます！🚀
             リバネスのslack-utilsプロジェクトに貢献いただき感謝します。
             Thank you for submitting your first pull request! 🤝
             We appreciate your contribution to the Leave a Nest slack-utils project.
-            作業フローやレビュー手順はCONTRIBUTINGガイドをご覧ください: https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+
+            📖 ガイドライン / Contributing Guide:
+            - 🇯🇵 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md
+            - 🇬🇧 https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING_en.md
+
+            ⏱️ レビューは通常1週間以内に開始します / Reviews typically begin within one week.
             継続的なコラボレーションを楽しみにしています！
+            We look forward to ongoing collaboration!
